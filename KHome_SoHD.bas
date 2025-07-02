@@ -1,4 +1,3 @@
-
 Sub TaoSoHopDong(ByVal activeRow As Long)
     '--- KHAI BAO ---
     Dim wsSetup As Worksheet, wsData As Worksheet
@@ -105,4 +104,3 @@ Sub TaoSoHopDong()
     Application.ScreenUpdating = True
     MsgBox "Hoan tat viec tao so hop dong cho cac dong da chon.", vbInformation, "Thanh cong"
 End Sub
->>>>>>> 0b88bfbed3748f8b000c17157647c179ceb62224

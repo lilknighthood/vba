@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 
+=======
+>>>>>>> 71971d9 (cập nhật phương thức tính toán)
 Sub TinhToanTongHop_ChoDongHienTai()
     '--- KHAI BAO ---
     Dim wsSetup As Worksheet, wsData As Worksheet
@@ -62,15 +65,15 @@ Sub TinhToanTongHop_ChoDongHienTai()
                 processedCount = processedCount + 1
                 
                 '========================================================================
-<<<<<<< HEAD
+
                 '   PHAN 1: GOI SUB TAO SO HOP DONG
                 '========================================================================
                 Call TaoSoHopDong(activeRow)
-=======
+
                 '   PHAN 1: TAO SO HOP DONG
                 '========================================================================
                 Call TaoSoHopDong
->>>>>>> 0b88bfbed3748f8b000c17157647c179ceb62224
+
 
                 '========================================================================
                 '   PHAN 2: TINH TOAN CAC GIA TRI CO BAN CUA CAN HO

@@ -1,4 +1,3 @@
-
 Option Explicit
 Public Sub TinhTienDoThanhToan(ByVal activeRow As Long, ByVal giaBanCanHo As Currency)
     '--- KHAI BAO ---
