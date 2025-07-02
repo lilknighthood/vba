@@ -1,4 +1,3 @@
-Attribute VB_Name = "KHome_Sub_TinhTienDoThanhToan"
 Option Explicit
 Public Sub TinhTienDoThanhToan(ByVal activeRow As Long, ByVal giaBanCanHo As Currency)
     '--- KHAI BAO ---

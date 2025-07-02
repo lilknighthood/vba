@@ -1,4 +1,3 @@
-Attribute VB_Name = "KHome_NhaTret_SoHD"
 Option Explicit
 Sub TaoSoHopDong(ByVal activeRow As Long)
     '--- KHAI BAO ---
@@ -35,7 +34,7 @@ Sub TaoSoHopDong(ByVal activeRow As Long)
     '--- Kiem tra dieu kien truoc khi tao so hop dong ---
     If maLoO <> "" And IsDate(ngayKy) Then
         'Tao chuoi so hop dong theo dung dinh dang
-        wsData.Range(colSoHD & activeRow).Value = maLoO & "/" & Year(ngayKy) & "/HÐ/NOXH - HP"
+        wsData.Range(colSoHD & activeRow).Value = maLoO & "/" & Year(ngayKy) & "/Hï¿½/NOXH - HP"
     End If
 End Sub
 

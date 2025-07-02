@@ -1,4 +1,3 @@
-Attribute VB_Name = "KHome_SoHD"
 Option Explicit
 Sub TaoSoHopDong(ByVal activeRow As Long)
     '--- KHAI BAO ---
