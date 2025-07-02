@@ -1,4 +1,3 @@
-Attribute VB_Name = "KHome_NhaTret_TienDoThanhToan"
 Option Explicit
 
 Public Sub TinhTienDoThanhToan(ByVal activeRow As Long)
