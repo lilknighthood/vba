@@ -54,7 +54,7 @@ Sub TaoSoHopDong()
                 namKy = Year(ngayKy)
                 
                 'Tao chuoi so hop dong theo dung dinh dang
-                soHopDong = maCanHo & "/" & namKy & "/HDMB"
+                soHopDong = maCanHo & "/" & namKy & "/HĐMB"
                 
                 'Ghi ket qua vao cot So Hop Dong
                 wsData.Range(colSoHD & activeRow).Value = soHopDong
