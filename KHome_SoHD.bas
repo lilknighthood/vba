@@ -1,5 +1,4 @@
-<<<<<<< HEAD
-Attribute VB_Name = "KHome_SoHD"
+
 Sub TaoSoHopDong(ByVal activeRow As Long)
     '--- KHAI BAO ---
     Dim wsSetup As Worksheet, wsData As Worksheet
