@@ -1,4 +1,3 @@
-Attribute VB_Name = "TT_Canho"
 Option Explicit
 Sub TinhToanTongHop_ChoDongHienTai()
     '--- KHAI BAO ---
