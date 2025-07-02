@@ -1,7 +1,4 @@
-<<<<<<< HEAD
-Attribute VB_Name = "KHome_TT_Canho"
-=======
->>>>>>> 0b88bfbed3748f8b000c17157647c179ceb62224
+
 Sub TinhToanTongHop_ChoDongHienTai()
     '--- KHAI BAO ---
     Dim wsSetup As Worksheet, wsData As Worksheet
