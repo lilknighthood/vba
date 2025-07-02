@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 Attribute VB_Name = "KHome_TT_Canho"
+=======
+>>>>>>> 0b88bfbed3748f8b000c17157647c179ceb62224
 Sub TinhToanTongHop_ChoDongHienTai()
     '--- KHAI BAO ---
     Dim wsSetup As Worksheet, wsData As Worksheet
@@ -15,6 +18,8 @@ Sub TinhToanTongHop_ChoDongHienTai()
     Dim colGiaBan As String, colDtThongThuy As String, colTenTienDo As String, colBatDauNgayTT As String
     Dim colGiaTriCanHo As String, colGiaTriQSDD As String, colThueGTGT As String, colPhiBaoTri As String
     Dim colBC_GiaBan As String, colBC_GiaTriCH As String, colBC_GiaTriQSDD As String, colBC_ThueGTGT As String, colBC_PhiBaoTri As String
+    'Cau hinh cho So Hop Dong
+    Dim colCanHo As String, colNgayKy As String, colSoHD As String
 
     '--- DOC CAU HINH ---
     On Error Resume Next
@@ -34,6 +39,10 @@ Sub TinhToanTongHop_ChoDongHienTai()
         colBC_GiaBan = .Range("B10").Value: colBC_GiaTriCH = .Range("B11").Value
         colBC_GiaTriQSDD = .Range("B12").Value: colBC_ThueGTGT = .Range("B13").Value
         colBC_PhiBaoTri = .Range("B14").Value
+        'Doc them cau hinh So Hop Dong
+        colCanHo = .Range("B17").Value
+        colNgayKy = .Range("B18").Value
+        colSoHD = .Range("B19").Value
     End With
 
     '--- KHOI TAO ---
@@ -56,9 +65,15 @@ Sub TinhToanTongHop_ChoDongHienTai()
                 processedCount = processedCount + 1
                 
                 '========================================================================
+<<<<<<< HEAD
                 '   PHAN 1: GOI SUB TAO SO HOP DONG
                 '========================================================================
                 Call TaoSoHopDong(activeRow)
+=======
+                '   PHAN 1: TAO SO HOP DONG
+                '========================================================================
+                Call TaoSoHopDong
+>>>>>>> 0b88bfbed3748f8b000c17157647c179ceb62224
 
                 '========================================================================
                 '   PHAN 2: TINH TOAN CAC GIA TRI CO BAN CUA CAN HO
@@ -116,3 +131,4 @@ Sub TinhToanTongHop_ChoDongHienTai()
     
     MsgBox finalMsg, vbInformation, "Ket qua tinh toan"
 End Sub
+
