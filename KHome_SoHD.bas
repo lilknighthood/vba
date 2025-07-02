@@ -1,3 +1,4 @@
+Option Explicit
 Sub TaoSoHopDong(ByVal activeRow As Long)
     '--- KHAI BAO ---
     Dim wsSetup As Worksheet, wsData As Worksheet
@@ -36,7 +37,6 @@ Sub TaoSoHopDong(ByVal activeRow As Long)
         wsData.Range(colSoHD & activeRow).Value = maCanHo & "/" & Year(ngayKy) & "/2025-HDMB"
     End If
 End Sub
-=======
 Sub TaoSoHopDong()
     '--- KHAI BAO ---
     Dim wsSetup As Worksheet, wsData As Worksheet

@@ -1,7 +1,4 @@
-<<<<<<< HEAD
-
-=======
->>>>>>> 71971d9 (cập nhật phương thức tính toán)
+Option Explicit
 Sub TinhToanTongHop_ChoDongHienTai()
     '--- KHAI BAO ---
     Dim wsSetup As Worksheet, wsData As Worksheet
