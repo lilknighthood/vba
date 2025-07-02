@@ -1,3 +1,4 @@
+Attribute VB_Name = "KHome_Sub_TinhTienDoThanhToan"
 Option Explicit
 Public Sub TinhTienDoThanhToan(ByVal activeRow As Long, ByVal giaBanCanHo As Currency)
     '--- KHAI BAO ---
@@ -28,7 +29,7 @@ Public Sub TinhTienDoThanhToan(ByVal activeRow As Long, ByVal giaBanCanHo As Cur
     'Tim dong tien do
     Dim dongTienDo As Long, timThay As Boolean
     timThay = False
-    For dongTienDo = 1 To wsTienDo.Cells(wsTienDo.Rows.Count, "C").End(xlUp).Row
+    For dongTienDo = 1 To wsTienDo.Cells(wsTienDo.Rows.Count, "C").End(xlUp).row
         If wsTienDo.Cells(dongTienDo, "C").Value = tenTienDoCanTim Then timThay = True: Exit For
     Next dongTienDo
     If Not timThay Then Exit Sub
@@ -97,3 +98,4 @@ Public Sub TinhTienDoThanhToan(ByVal activeRow As Long, ByVal giaBanCanHo As Cur
         wsData.Cells(activeRow, colIndexNgayOutput + (i - 1) * 2).ClearContents
     Next i
 End Sub
+

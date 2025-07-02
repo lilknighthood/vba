@@ -1,8 +1,17 @@
-Option Explicit
+Attribute VB_Name = "KHome_TT_Canho"
 Sub TinhToanTongHop_ChoDongHienTai()
     '--- KHAI BAO ---
     Dim wsSetup As Worksheet, wsData As Worksheet
+    Dim row As Range
     Dim activeRow As Long
+    
+    '--- KHAI BAO CAC BIEN LUU TRU DONG BI LOI ---
+    Dim skippedRows As String
+    Dim processedCount As Long
+    skippedRows = ""
+    processedCount = 0
+    
+    '--- KHAI BAO CAU HINH ---
     Dim colGiaBan As String, colDtThongThuy As String, colTenTienDo As String, colBatDauNgayTT As String
     Dim colGiaTriCanHo As String, colGiaTriQSDD As String, colThueGTGT As String, colPhiBaoTri As String
     Dim colBC_GiaBan As String, colBC_GiaTriCH As String, colBC_GiaTriQSDD As String, colBC_ThueGTGT As String, colBC_PhiBaoTri As String
@@ -27,61 +36,83 @@ Sub TinhToanTongHop_ChoDongHienTai()
         colBC_PhiBaoTri = .Range("B14").Value
     End With
 
-    '--- BAT DAU XU LY ---
-    activeRow = ActiveCell.Row
+    '--- KHOI TAO ---
     Set wsData = ThisWorkbook.Sheets("CAN HO K-HOME")
+    Application.ScreenUpdating = False
 
+    '*** VONG LAP QUA TUNG DONG VA KIEM TRA XEM DONG CO BI AN KHONG ***
+    For Each row In Selection.Rows
+        If row.Hidden = False Then
+            activeRow = row.row
+            
+            '========================================================================
+            '   *** KIEM TRA DIEU KIEN TRUOC KHI XU LY TUNG DONG ***
+            '========================================================================
+            If wsData.Range(colTenTienDo & activeRow).Value = "" Then
+                skippedRows = skippedRows & "Dong " & activeRow & ": Thieu Tien Do" & vbCrLf
+            ElseIf Not IsDate(wsData.Range(colBatDauNgayTT & activeRow).Value) Then
+                skippedRows = skippedRows & "Dong " & activeRow & ": Thieu hoac sai Ngay TT Dot 1" & vbCrLf
+            Else
+                processedCount = processedCount + 1
+                
+                '========================================================================
+                '   PHAN 1: GOI SUB TAO SO HOP DONG
+                '========================================================================
+                Call TaoSoHopDong(activeRow)
+
+                '========================================================================
+                '   PHAN 2: TINH TOAN CAC GIA TRI CO BAN CUA CAN HO
+                '========================================================================
+                Dim heSoDat As Double
+                Dim giaBanCanHo As Currency, dtThongThuy As Double
+                Dim giaTriQSDD As Currency, giaTriCanHo As Currency, thueGTGT As Currency, phiBaoTri As Currency
+                
+                heSoDat = 729754.9204
+                giaBanCanHo = wsData.Range(colGiaBan & activeRow).Value
+                dtThongThuy = wsData.Range(colDtThongThuy & activeRow).Value
+                
+                If giaBanCanHo > 0 And dtThongThuy > 0 Then
+                    giaTriQSDD = dtThongThuy * heSoDat
+                    giaTriCanHo = (giaBanCanHo - giaTriQSDD) / 1.1
+                    thueGTGT = giaTriCanHo * 0.1
+                    phiBaoTri = (giaTriQSDD + giaTriCanHo) * 0.02
+                    
+                    With wsData
+                        .Range(colGiaTriCanHo & activeRow).Value = giaTriCanHo
+                        .Range(colGiaTriQSDD & activeRow).Value = giaTriQSDD
+                        .Range(colThueGTGT & activeRow).Value = thueGTGT
+                        .Range(colPhiBaoTri & activeRow).Value = phiBaoTri
+                        
+                        .Range(colBC_GiaBan & activeRow).Value = vnd(giaBanCanHo)
+                        .Range(colBC_GiaTriCH & activeRow).Value = vnd(giaTriCanHo)
+                        .Range(colBC_GiaTriQSDD & activeRow).Value = vnd(giaTriQSDD)
+                        .Range(colBC_ThueGTGT & activeRow).Value = vnd(thueGTGT)
+                        .Range(colBC_PhiBaoTri & activeRow).Value = vnd(phiBaoTri)
+                    End With
+                    
+                    '========================================================================
+                    '   GOI SUB PHU DE THUC HIEN PHAN 3
+                    '========================================================================
+                    Call TinhTienDoThanhToan(activeRow, giaBanCanHo)
+                Else
+                     skippedRows = skippedRows & "Dong " & activeRow & ": Loi du lieu (Gia ban hoac DTSD)" & vbCrLf
+                End If
+            End If
+        End If
+    Next row
+    
+    Application.ScreenUpdating = True
+    
     '========================================================================
-    '   *** BUOC KIEM TRA DIEU KIEN TRUOC KHI CHAY ***
+    '   HIEN THI THONG BAO TONG KET CUOI CUNG
     '========================================================================
-    If wsData.Range(colTenTienDo & activeRow).Value = "" Then
-        MsgBox "Ban chua chon TIEN DO THANH TOAN tai dong " & activeRow, vbExclamation, "Thieu thong tin"
-        Exit Sub
+    Dim finalMsg As String
+    finalMsg = "Hoan tat!" & vbCrLf & vbCrLf
+    finalMsg = finalMsg & "So dong da xu ly thanh cong: " & processedCount & vbCrLf & vbCrLf
+    
+    If skippedRows <> "" Then
+        finalMsg = finalMsg & "Cac dong sau da bi bo qua:" & vbCrLf & skippedRows
     End If
     
-    If Not IsDate(wsData.Range(colBatDauNgayTT & activeRow).Value) Then
-        MsgBox "Ban chua nhap NGAY THANH TOAN DOT 1 tai dong " & activeRow, vbExclamation, "Thieu thong tin"
-        Exit Sub
-    End If
-    
-    '========================================================================
-    '   PHAN 1: TINH TOAN CAC GIA TRI CO BAN CUA CAN HO
-    '========================================================================
-    Dim heSoDat As Double
-    Dim giaBanCanHo As Currency, dtThongThuy As Double
-    Dim giaTriQSDD As Currency, giaTriCanHo As Currency, thueGTGT As Currency, phiBaoTri As Currency
-    
-    heSoDat = 729754.9204
-    giaBanCanHo = wsData.Range(colGiaBan & activeRow).Value
-    dtThongThuy = wsData.Range(colDtThongThuy & activeRow).Value
-    
-    If giaBanCanHo <= 0 Or dtThongThuy <= 0 Then
-        MsgBox "Du lieu dau vao (Gia ban hoac DTSD) khong hop le.", vbExclamation
-        Exit Sub
-    End If
-    
-    giaTriQSDD = dtThongThuy * heSoDat
-    giaTriCanHo = (giaBanCanHo - giaTriQSDD) / 1.1
-    thueGTGT = giaTriCanHo * 0.1
-    phiBaoTri = (giaTriQSDD + giaTriCanHo) * 0.02
-    
-    With wsData
-        .Range(colGiaTriCanHo & activeRow).Value = giaTriCanHo
-        .Range(colGiaTriQSDD & activeRow).Value = giaTriQSDD
-        .Range(colThueGTGT & activeRow).Value = thueGTGT
-        .Range(colPhiBaoTri & activeRow).Value = phiBaoTri
-        
-        .Range(colBC_GiaBan & activeRow).Value = vnd(giaBanCanHo)
-        .Range(colBC_GiaTriCH & activeRow).Value = vnd(giaTriCanHo)
-        .Range(colBC_GiaTriQSDD & activeRow).Value = vnd(giaTriQSDD)
-        .Range(colBC_ThueGTGT & activeRow).Value = vnd(thueGTGT)
-        .Range(colBC_PhiBaoTri & activeRow).Value = vnd(phiBaoTri)
-    End With
-    
-    '========================================================================
-    '   GOI SUB PHU DE THUC HIEN PHAN 2
-    '========================================================================
-    Call TinhTienDoThanhToan(activeRow, giaBanCanHo)
-    
-    MsgBox "Hoan tat! Da tinh toan xong cho dong " & activeRow, vbInformation, "Thanh cong"
+    MsgBox finalMsg, vbInformation, "Ket qua tinh toan"
 End Sub
