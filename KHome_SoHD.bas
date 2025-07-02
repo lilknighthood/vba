@@ -1,4 +1,3 @@
-Attribute VB_Name = "KHome_SoHD"
 Sub TaoSoHopDong()
     '--- KHAI BAO ---
     Dim wsSetup As Worksheet, wsData As Worksheet
