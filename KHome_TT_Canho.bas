@@ -39,22 +39,10 @@ Sub TinhToanTongHop_ChoDongHienTai()
     Set wsData = ThisWorkbook.Sheets("CAN HO K-HOME")
     Application.ScreenUpdating = False
 
-    '*** VONG LAP QUA CAC DONG DANG HIEN THI (VISIBLE) TRONG VUNG CHON ***
-    Dim visibleCells As Range
-    Dim area As Range
-    
-    On Error Resume Next 'Bo qua loi neu khong co dong nao hien thi
-    Set visibleCells = Selection.SpecialCells(xlCellTypeVisible)
-    On Error GoTo 0
-    
-    If visibleCells Is Nothing Then
-        Application.ScreenUpdating = True
-        MsgBox "Khong co dong nao hop le de xu ly trong vung da chon.", vbInformation, "Thong bao"
-        Exit Sub
-    End If
-
-    For Each area In visibleCells.Areas 'Lap qua tung vung lien ke nhau
-        For Each row In area.Rows 'Lap qua tung dong trong moi vung
+    '*** VONG LAP QUA TUNG DONG VA KIEM TRA XEM DONG CO BI AN KHONG ***
+    For Each row In Selection.Rows
+        '*** SUA LOI KHI AN COT: Chi xu ly neu dong khong bi an ***
+        If row.Hidden = False Then
             activeRow = row.Row
             
             '========================================================================
@@ -102,8 +90,8 @@ Sub TinhToanTongHop_ChoDongHienTai()
                      skippedRows = skippedRows & "Dong " & activeRow & ": Loi du lieu (Gia ban hoac DTSD)" & vbCrLf
                 End If
             End If
-        Next row
-    Next area
+        End If 'Ket thuc kiem tra dong bi an
+    Next row
     
     Application.ScreenUpdating = True
     
