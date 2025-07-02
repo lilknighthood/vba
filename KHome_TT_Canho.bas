@@ -48,7 +48,7 @@ Sub TinhToanTongHop_ChoDongHienTai()
     '*** VONG LAP QUA TUNG DONG VA KIEM TRA XEM DONG CO BI AN KHONG ***
     For Each row In Selection.Rows
         If row.Hidden = False Then
-            activeRow = row.Row
+            activeRow = row.row
             
             '========================================================================
             '   *** KIEM TRA DIEU KIEN TRUOC KHI XU LY TUNG DONG ***
@@ -63,12 +63,7 @@ Sub TinhToanTongHop_ChoDongHienTai()
                 '========================================================================
                 '   PHAN 1: TAO SO HOP DONG
                 '========================================================================
-                Dim maCanHo As String, ngayKy As Variant
-                maCanHo = wsData.Range(colCanHo & activeRow).Value
-                ngayKy = wsData.Range(colNgayKy & activeRow).Value
-                If maCanHo <> "" And IsDate(ngayKy) Then
-                    wsData.Range(colSoHD & activeRow).Value = maCanHo & "/" & Year(ngayKy) & "/HDMB"
-                End If
+                Call TaoSoHopDong
 
                 '========================================================================
                 '   PHAN 2: TINH TOAN CAC GIA TRI CO BAN CUA CAN HO
@@ -126,3 +121,4 @@ Sub TinhToanTongHop_ChoDongHienTai()
     
     MsgBox finalMsg, vbInformation, "Ket qua tinh toan"
 End Sub
+
