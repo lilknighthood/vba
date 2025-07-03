@@ -1,4 +1,3 @@
-Attribute VB_Name = "KHome_CanHo_CheckFile"
 Option Explicit ' Buoc trinh bien dich phai khai bao tat ca cac bien
 
 '==================================================================================================
@@ -167,7 +166,7 @@ Sub TaoFileBaoCao()
     
     ' Lam sach ten file de tranh loi
     fileNamePart = Replace(Replace(Replace(Replace(Replace(Replace(Replace(Replace(Replace(fileNamePart, "/", "-"), "\", "-"), ":", ""), "*", ""), "?", ""), """", ""), "<", ""), ">", ""), "|", "")
-    fileName = "K-HOME CAN HO –_" & fileNamePart & "_" & Format(Date, "yyyymmdd") & ".xlsx"
+    fileName = "K-HOME CAN HO √ê_" & fileNamePart & "_" & Format(Date, "yyyymmdd") & ".xlsx"
     
     If Right(folderPath, 1) <> Application.PathSeparator Then folderPath = folderPath & Application.PathSeparator
     
