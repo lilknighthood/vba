@@ -1,12 +1,4 @@
 Option Explicit ' Buoc trinh bien dich phai khai bao tat ca cac bien
-
-'==================================================================================================
-'   Muc dich: Loc bao cao, ghi STT, ghi ten, ke vien va luu ra file Excel moi.
-'   Phien ban: Da gop va toi uu toan bo code, bo Wrap Text.
-'   Tac gia: Gemini
-'   Ngay cap nhat: 04/07/2025
-'==================================================================================================
-
 '--------------------------------------------------------------------------------------------------
 '   HAM CHUC NANG: Kiem tra va lay duong dan hop le tu sheet nguon.
 '   Neu duong dan khong co hoac khong hop le, se hien cua so de nguoi dung chon.
