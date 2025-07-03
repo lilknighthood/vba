@@ -1,4 +1,3 @@
-Attribute VB_Name = "KHome_CanHo_LocBaoCao"
 '==================================================================================================
 '   Muc dich: Loc bao cao, ghi STT, ghi ten nguoi lap va tu dong ke vien cho bang du lieu.
 '==================================================================================================
