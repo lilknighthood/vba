@@ -29,17 +29,17 @@ Public Sub TaoSoHopDong(ByVal activeRow As Long)
     If maCanHo = "" Or Not IsDate(ngayKy) Then Exit Sub
     
     '========================================================================
-    '   *** LOGIC MOI: DOC BANG TRA CUU VA TIM DUOI HOP DONG ***
+    '   *** BUOC 1: TIM DUNG "CONG THUC MAU" TU BANG TRA CUU ***
     '========================================================================
     Dim bangTraCuu As Range, dieuKien As Range
-    Dim duoiHopDong As String, duoiMacDinh As String
+    Dim mauHopDong As String, mauMacDinh As String
     
-    '*** THAY DOI TAI DAY: Doc bang tra cuu tu cot G va H ***
+    'Xac dinh vung chua Bang Tra Cuu (tu G2 den cot H dong cuoi cung co du lieu)
     Set bangTraCuu = wsSetup.Range("G2:H" & wsSetup.Cells(wsSetup.Rows.Count, "G").End(xlUp).row)
     
-    'Lay duoi hop dong mac dinh (o dong cuoi cung cua bang)
-    duoiMacDinh = bangTraCuu.Cells(bangTraCuu.Rows.Count, 2).Value
-    duoiHopDong = duoiMacDinh 'Gan gia tri mac dinh truoc
+    'Lay mau hop dong mac dinh (o dong cuoi cung cua bang)
+    mauMacDinh = bangTraCuu.Cells(bangTraCuu.Rows.Count, 2).Value
+    mauHopDong = mauMacDinh 'Gan gia tri mac dinh truoc
     
     'Duyet qua tung dieu kien trong Bang Tra Cuu (tru dong mac dinh)
     For Each dieuKien In bangTraCuu.Resize(bangTraCuu.Rows.Count - 1).Rows
@@ -54,11 +54,23 @@ Public Sub TaoSoHopDong(ByVal activeRow As Long)
         End If
 
         If tenTienDo Like tuKhoa Then
-            duoiHopDong = dieuKien.Cells(1, 2).Value 'Lay duoi hop dong tuong ung o cot H
+            mauHopDong = dieuKien.Cells(1, 2).Value 'Lay mau hop dong tuong ung o cot H
             Exit For 'Tim thay roi, thoat khoi vong lap
         End If
     Next dieuKien
+
+    '========================================================================
+    '   *** BUOC 2: TAO SO HOP DONG TU "CONG THUC MAU" DA TIM DUOC ***
+    '========================================================================
+    Dim soHopDongHoanChinh As String
+    soHopDongHoanChinh = mauHopDong
     
-    'Tao chuoi so hop dong cuoi cung
-    wsData.Range(colSoHD & activeRow).Value = maCanHo & "/" & Year(ngayKy) & duoiHopDong
+    'Thay the [NAMKY]
+    soHopDongHoanChinh = Replace(soHopDongHoanChinh, "[NAMKY]", Year(ngayKy), 1, -1, vbTextCompare)
+    
+    'Thay the [CANHO]
+    soHopDongHoanChinh = Replace(soHopDongHoanChinh, "[CANHO]", maCanHo, 1, -1, vbTextCompare)
+    
+    'Ghi ket qua cuoi cung vao cot So Hop Dong
+    wsData.Range(colSoHD & activeRow).Value = soHopDongHoanChinh
 End Sub
