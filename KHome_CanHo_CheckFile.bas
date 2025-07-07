@@ -1,7 +1,5 @@
-Option Explicit ' Buoc trinh bien dich phai khai bao tat ca cac bien
-'--------------------------------------------------------------------------------------------------
-'   HAM CHUC NANG: Kiem tra va lay duong dan hop le tu sheet nguon.
-'   Neu duong dan khong co hoac khong hop le, se hien cua so de nguoi dung chon.
+Option Explicit
+
 '--------------------------------------------------------------------------------------------------
 Function LayDuongDanHopLe(ByVal wsNguon As Worksheet) As String
     Dim folderPath As String
