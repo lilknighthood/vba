@@ -45,7 +45,7 @@ Public Sub TinhTienDoThanhToan(ByVal activeRow As Long, ByVal giaBanCanHo As Cur
     '--- BUOC 1: Tim dot cuoi cung co gia tri ---
     Dim dotCuoiCung As Integer, i As Integer
     dotCuoiCung = 0
-    For i = 16 To 1 Step -1
+    For i = 20 To 1 Step -1
         If IsNumeric(wsTienDo.Cells(dongTienDo, (i - 1) * 2 + 5).Value) And wsTienDo.Cells(dongTienDo, (i - 1) * 2 + 5).Value <> "" Then
             dotCuoiCung = i
             Exit For
@@ -91,11 +91,12 @@ Public Sub TinhTienDoThanhToan(ByVal activeRow As Long, ByVal giaBanCanHo As Cur
     Next i
     
     '--- BUOC 3: Xoa du lieu thua o cac dot sau dot cuoi cung ---
-    For i = dotCuoiCung + 1 To 16
+    For i = dotCuoiCung + 1 To 20
         wsData.Cells(activeRow, colIndexOutput + (i - 1) * 2).ClearContents
         wsData.Cells(activeRow, colIndexBC_Dot1 + i - 1).ClearContents
         wsData.Cells(activeRow, colIndexNgayOutput + (i - 1) * 2).ClearContents
     Next i
 End Sub
+
 
 
