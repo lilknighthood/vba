@@ -152,14 +152,32 @@ Sub TaoFileBaoCao()
         End If
     End With
     
+   ' --- LUU FILE MOI (Phien ban chong trung ten file) ---
+    
     ' Lam sach ten file de tranh loi
     fileNamePart = Replace(Replace(Replace(Replace(Replace(Replace(Replace(Replace(Replace(fileNamePart, "/", "-"), "\", "-"), ":", ""), "*", ""), "?", ""), """", ""), "<", ""), ">", ""), "|", "")
-    fileName = "K-HOME CAN HO Ð_" & fileNamePart & "_" & Format(Date, "yyyymmdd") & ".xlsx"
     
+    ' Dam bao duong dan luon co dau "\" o cuoi
     If Right(folderPath, 1) <> Application.PathSeparator Then folderPath = folderPath & Application.PathSeparator
     
-    fullSavePath = folderPath & fileName
+    ' Kiem tra va tao ten file duy nhat
+    Dim baseName As String
+    Dim fileExtension As String
+    Dim counter As Long
     
+    baseName = folderPath & "K-HOME CAN HO Ð_" & fileNamePart & "_" & Format(Date, "yyyymmdd")
+    fileExtension = ".xlsx"
+    counter = 0
+    
+    fullSavePath = baseName & fileExtension
+    
+    ' Vong lap de kiem tra neu file da ton tai
+    While Dir(fullSavePath) <> ""
+        counter = counter + 1
+        fullSavePath = baseName & " (" & counter & ")" & fileExtension
+    Wend
+    
+    ' Luu file voi ten da duoc dam bao la duy nhat
     newWb.SaveAs fileName:=fullSavePath, FileFormat:=xlOpenXMLWorkbook
     
 ' --- KET THUC VA DON DEP ---
