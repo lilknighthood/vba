@@ -39,8 +39,6 @@ Function LayDuongDanHopLe(ByVal wsNguon As Worksheet) As String
     Set fso = Nothing
     Set fldrPicker = Nothing
 End Function
-
-
 '--------------------------------------------------------------------------------------------------
 '   SUB CHINH: Thuc thi toan bo qua trinh tao file bao cao.
 '--------------------------------------------------------------------------------------------------
@@ -48,8 +46,8 @@ Sub TaoFileBaoCao()
     ' --- KHAI BAO BIEN ---
     Dim sourceSheet As Worksheet, newWb As Workbook, newSheet As Worksheet
     Dim sourceHeaderRange As Range, sourceDataRange As Range, sourceVisibleData As Range, borderRange As Range
-    Dim sttArray() As Variant
-    Dim sourceLastRow As Long, i As Long
+    Dim i As Long
+    Dim sourceLastRow As Long
     Dim fullSavePath As String, folderPath As String, fileName As String, fileNamePart As String
     
     ' --- THIET LAP BAN DAU & XU LY LOI ---
@@ -77,6 +75,7 @@ Sub TaoFileBaoCao()
     End If
     
     ' --- TACH BIET DONG TIEU DE VA VUNG DU LIEU ---
+    ' Vung du lieu nguon bao gom ca cot STT (A)
     Set sourceHeaderRange = sourceSheet.Range("A2:Q2")
     If sourceLastRow >= 3 Then
         Set sourceDataRange = sourceSheet.Range("A3:Q" & sourceLastRow)
@@ -87,54 +86,53 @@ Sub TaoFileBaoCao()
     Set newWb = Workbooks.Add
     Set newSheet = newWb.Sheets(1)
     
-    ' Sao chep dong tieu de voi day du dinh dang
+    ' Sao chep dong tieu de
     sourceHeaderRange.Copy
     With newSheet.Range("A1")
         .PasteSpecial Paste:=xlPasteColumnWidths
-        .PasteSpecial Paste:=xlPasteAll
+        .PasteSpecial Paste:=xlPasteFormats
+        .PasteSpecial Paste:=xlPasteValuesAndNumberFormats
     End With
+    Application.CutCopyMode = False
     
-    ' Sao chep du lieu va chi dan gia tri
+    ' Sao chep vung du lieu
     If Not sourceVisibleData Is Nothing Then
         sourceVisibleData.Copy
+        ' === SUA LOI: Dan du lieu vao cot A, vi du lieu goc da co STT ===
         newSheet.Range("A2").PasteSpecial Paste:=xlPasteValuesAndNumberFormats
     End If
     
     ' --- DINH DANG VA XU LY FILE MOI ---
     With newSheet
-        .Cells.EntireRow.AutoFit ' Tu dong can chinh chieu cao
+        .Cells.EntireRow.AutoFit
         
-        ' Tao va ghi so thu tu
-        Dim dataRowCount As Long
-        dataRowCount = .Cells(.Rows.Count, "B").End(xlUp).row - 1
-        If dataRowCount > 0 Then
-            ReDim sttArray(1 To dataRowCount, 1 To 1)
-            For i = 1 To dataRowCount
-                sttArray(i, 1) = i
-            Next i
-            .Range("A3").Resize(dataRowCount, 1).Value = sttArray
-        End If
-        
-        ' Ghi ten nguoi lap va ngay thang
-        Dim finalDataRow As Long
-        finalDataRow = .Cells(.Rows.Count, "B").End(xlUp).row
+        ' === XOA BO PHAN TU TAO STT VI KHONG CAN THIET ===
         
         ' Dinh nghia va dinh dang cho o chua ngay thang
+        Dim finalDataRow As Long
+        finalDataRow = .Cells(.Rows.Count, "B").End(xlUp).row
         With .Cells(finalDataRow + 3, "G")
-            .Value = Date                     ' Gan gia tri ngay hien tai
-            .NumberFormat = "dd/MM/yyyy"      ' Dinh dang ngay thang
-            .Font.Bold = True                 ' To dam
-            .HorizontalAlignment = xlCenter   ' Canh giua theo chieu ngang
-            .VerticalAlignment = xlCenter     ' Canh giua theo chieu doc
+            .Value = Date
+            .NumberFormat = "dd/MM/yyyy"
+            .Font.Bold = True
+            .HorizontalAlignment = xlCenter
+            .VerticalAlignment = xlCenter
         End With
         
-        .Range("P:Q").ClearContents ' Xoa du lieu thua
+        .Range("P:Q").ClearContents
+        
+        ' Dinh dang dong tieu de A1:N1
+        With .Range("A1:N1")
+            .VerticalAlignment = xlCenter
+            .HorizontalAlignment = xlCenterAcrossSelection
+        End With
+        ' Dinh dang dong du lieu dau tien A2:N2
         With .Range("A2:N2")
-            .WrapText = True                 ' Xuong dong tu dong
             .VerticalAlignment = xlCenter    ' Canh giua theo chieu doc (Middle)
             .HorizontalAlignment = xlCenter  ' Canh giua theo chieu ngang (Center)
+            .WrapText = True                 ' Xuong dong tu dong
         End With
-        
+
         ' Ke vien cho toan bo bang
         Set borderRange = .Range("A1:N" & finalDataRow + 3)
         With borderRange.Borders
@@ -150,7 +148,7 @@ Sub TaoFileBaoCao()
             .Name = .Range("O1").Value
             fileNamePart = .Range("O1").Value
         Else
-            fileNamePart = "BaoCao" ' Ten mac dinh neu O1 trong
+            fileNamePart = "BaoCao"
         End If
     End With
     
@@ -178,4 +176,5 @@ CleanupAndExit:
                vbCritical, "Loi Thuc Thi Macro"
     End If
 End Sub
+
 
