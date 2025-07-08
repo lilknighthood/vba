@@ -1,175 +1,112 @@
-Option Explicit
-
-'--------------------------------------------------------------------------------------------------
-Function LayDuongDanHopLe(ByVal wsNguon As Worksheet) As String
-    Dim folderPath As String
-    Dim fso As Object
-    Dim fldrPicker As FileDialog
+'==================================================================================================
+'   Muc dich: Loc bao cao, ghi STT, ghi ten nguoi lap va tu dong ke vien cho bang du lieu.
+'==================================================================================================
+Sub LocBaoCao()
+    ' --- KHAI BAO CAC BIEN VA HANG SO ---
+    Const SOURCE_SHEET_NAME As String = "CAN HO K-HOME" ' <<< Ten sheet du lieu nguon
+    Const REPORT_SHEET_NAME As String = "TRINH_KY"      ' <<< Ten sheet trinh ky (bao cao)
+    Const INPUT_CELL As String = "F1"                   ' <<< O chua dieu kien loc "DOT THANH TOAN"
+    Const ALL_ITEMS_TEXT As String = "Tat Ca"           ' <<< Text de chon tat ca
     
-    ' Doc duong dan tu o P2 cua sheet nguon
-    folderPath = wsNguon.Range("P2").Value
+    ' Khai bao cac bien
+    Dim sourceSheet As Worksheet, reportSheet As Worksheet
+    Dim sourceData As Variant, resultsData() As Variant, sttArray() As Variant
+    Dim filterCondition As String
+    Dim lastRow As Long, resultCounter As Long
+    Dim i As Long
     
-    ' Tao doi tuong de kiem tra thu muc
-    Set fso = CreateObject("Scripting.FileSystemObject")
-    
-    ' Kiem tra xem duong dan co ton tai khong
-    If folderPath = "" Or Not fso.FolderExists(folderPath) Then
-        ' Neu khong, hien cua so cho nguoi dung chon
-        MsgBox "Duong dan luu file trong o P2 khong hop le hoac bi trong." & vbCrLf & _
-               "Vui long chon mot thu muc de luu file.", vbInformation, "Thong Bao"
-               
-        Set fldrPicker = Application.FileDialog(msoFileDialogFolderPicker)
-        fldrPicker.Title = "Vui long chon thu muc de luu bao cao"
-        
-        If fldrPicker.Show = True Then
-            ' Neu nguoi dung chon, lay duong dan va luu vao o P2
-            folderPath = fldrPicker.SelectedItems(1)
-            wsNguon.Range("P2").Value = folderPath
-            LayDuongDanHopLe = folderPath ' Tra ve duong dan da chon
-        Else
-            ' Neu nguoi dung huy, tra ve chuoi rong
-            LayDuongDanHopLe = ""
-        End If
-    Else
-        ' Neu duong dan hop le, tra ve chinh no
-        LayDuongDanHopLe = folderPath
-    End If
-    
-    ' Giai phong bo nho
-    Set fso = Nothing
-    Set fldrPicker = Nothing
-End Function
-
-
-'--------------------------------------------------------------------------------------------------
-'   SUB CHINH: Thuc thi toan bo qua trinh tao file bao cao.
-'--------------------------------------------------------------------------------------------------
-Sub TaoFileBaoCao()
-    ' --- KHAI BAO BIEN ---
-    Dim sourceSheet As Worksheet, newWb As Workbook, newSheet As Worksheet
-    Dim sourceHeaderRange As Range, sourceDataRange As Range, sourceVisibleData As Range, borderRange As Range
-    Dim sttArray() As Variant
-    Dim sourceLastRow As Long, i As Long
-    Dim fullSavePath As String, folderPath As String, fileName As String, fileNamePart As String
-    
-    ' --- THIET LAP BAN DAU & XU LY LOI ---
-    Set sourceSheet = Sheet3 ' >>> Ban hay kiem tra lai Sheet3 co dung la sheet nguon khong.
-    
+    ' --- TANG TOC DO THUC THI & XU LY LOI ---
     Application.ScreenUpdating = False
-    Application.DisplayAlerts = False
+    Application.Calculation = xlCalculationManual
     Application.EnableEvents = False
     On Error GoTo CleanupAndExit
 
-    ' --- LUU FILE MOI (Thuc hien kiem tra duong dan dau tien) ---
-    folderPath = LayDuongDanHopLe(sourceSheet)
-    
-    ' Neu nguoi dung huy viec chon folder, thoat macro
-    If folderPath = "" Then
-        MsgBox "Da huy thao tac tao file do khong chon duong dan luu.", vbExclamation
-        GoTo CleanupAndExit
-    End If
-    
-    ' --- LAY DU LIEU TU SHEET NGUON ---
-    sourceLastRow = sourceSheet.Cells(sourceSheet.Rows.Count, "G").End(xlUp).row
-    If sourceLastRow < 2 Then
-        MsgBox "Khong co du lieu de tao file.", vbInformation, "Thong bao"
-        GoTo CleanupAndExit
-    End If
-    
-    ' --- TACH BIET DONG TIEU DE VA VUNG DU LIEU ---
-    Set sourceHeaderRange = sourceSheet.Range("A2:Q2")
-    If sourceLastRow >= 3 Then
-        Set sourceDataRange = sourceSheet.Range("A3:Q" & sourceLastRow)
-        Set sourceVisibleData = sourceDataRange.SpecialCells(xlCellTypeVisible)
-    End If
-    
-    ' --- TAO FILE MOI VA SAO CHEP DU LIEU ---
-    Set newWb = Workbooks.Add
-    Set newSheet = newWb.Sheets(1)
-    
-    ' Sao chep dong tieu de voi day du dinh dang
-    sourceHeaderRange.Copy
-    With newSheet.Range("A1")
-        .PasteSpecial Paste:=xlPasteColumnWidths
-        .PasteSpecial Paste:=xlPasteAll
+    ' --- THIET LAP CAC SHEET LAM VIEC ---
+    Set sourceSheet = ThisWorkbook.Sheets(SOURCE_SHEET_NAME)
+    Set reportSheet = ThisWorkbook.Sheets(REPORT_SHEET_NAME)
+    filterCondition = LCase(reportSheet.Range(INPUT_CELL).Value)
+
+    ' --- DOC DU LIEU TU SHEET NGUON VAO MANG ---
+    With sourceSheet
+        lastRow = .Cells(.Rows.Count, "B").End(xlUp).row
+        If lastRow < 2 Then
+            MsgBox "Khong co du lieu tai sheet '" & SOURCE_SHEET_NAME & "'.", vbInformation, "Thong bao"
+            GoTo CleanupAndExit
+        End If
+        sourceData = .Range("B2:DC" & lastRow).Value
     End With
+
+    ' --- XU LY DU LIEU ---
+    ReDim resultsData(1 To UBound(sourceData, 1), 1 To 17)
+    resultCounter = 0
+    Const COL_DOT_TT As Long = 27
     
-    ' Sao chep du lieu va chi dan gia tri
-    If Not sourceVisibleData Is Nothing Then
-        sourceVisibleData.Copy
-        newSheet.Range("A2").PasteSpecial Paste:=xlPasteValuesAndNumberFormats
-    End If
-    
-    ' --- DINH DANG VA XU LY FILE MOI ---
-    With newSheet
-        .Cells.EntireRow.AutoFit ' Tu dong can chinh chieu cao
+    For i = 1 To UBound(sourceData, 1)
+        If filterCondition = LCase(ALL_ITEMS_TEXT) Or LCase(CStr(sourceData(i, COL_DOT_TT))) = filterCondition Then
+            resultCounter = resultCounter + 1
+            resultsData(resultCounter, 1) = sourceData(i, 4)
+            resultsData(resultCounter, 2) = sourceData(i, 8)
+            resultsData(resultCounter, 3) = sourceData(i, 9)
+            resultsData(resultCounter, 4) = sourceData(i, 10)
+            resultsData(resultCounter, 5) = sourceData(i, 11)
+            resultsData(resultCounter, 6) = sourceData(i, 12)
+            resultsData(resultCounter, 7) = sourceData(i, 20)
+            resultsData(resultCounter, 8) = sourceData(i, 26)
+            resultsData(resultCounter, 9) = sourceData(i, 24)
+            resultsData(resultCounter, 10) = sourceData(i, 31)
+            resultsData(resultCounter, 11) = sourceData(i, 32)
+            resultsData(resultCounter, 12) = sourceData(i, 33)
+            resultsData(resultCounter, 13) = sourceData(i, 29)
+        End If
+    Next i
+
+    ' --- GHI KET QUA RA SHEET TRINH KY ---
+    With reportSheet
+        ' Xoa du lieu cu va vien cu
+        .Range("A4:N" & .Rows.Count).ClearContents
+        .Range("A3:N" & .Rows.Count).Borders.LineStyle = xlNone
         
-        ' Tao va ghi so thu tu
-        Dim dataRowCount As Long
-        dataRowCount = .Cells(.Rows.Count, "B").End(xlUp).row - 1
-        If dataRowCount > 0 Then
-            ReDim sttArray(1 To dataRowCount, 1 To 1)
-            For i = 1 To dataRowCount
+        If resultCounter > 0 Then
+            ' === PHAN MOI THEM: TAO SO THU TU CHO COT A ===
+            ReDim sttArray(1 To resultCounter, 1 To 1)
+            For i = 1 To resultCounter
                 sttArray(i, 1) = i
             Next i
-            .Range("A3").Resize(dataRowCount, 1).Value = sttArray
-        End If
-        
-        ' Ghi ten nguoi lap va ngay thang
-        Dim finalDataRow As Long
-        finalDataRow = .Cells(.Rows.Count, "B").End(xlUp).row
-        
-        ' Dinh nghia va dinh dang cho o chua ngay thang
-        With .Cells(finalDataRow + 3, "G")
-            .Value = Date                     ' Gan gia tri ngay hien tai
-            .NumberFormat = "dd/MM/yyyy"      ' Dinh dang ngay thang
-            .Font.Bold = True                 ' To dam
-            .HorizontalAlignment = xlCenter   ' Canh giua theo chieu ngang
-            .VerticalAlignment = xlCenter     ' Canh giua theo chieu doc
-        End With
-        
-        .Range("P:Q").ClearContents ' Xoa du lieu thua
-        With .Range("A2:N2")
-            .WrapText = True                 ' Xuong dong tu dong
-            .VerticalAlignment = xlCenter    ' Canh giua theo chieu doc (Middle)
-            .HorizontalAlignment = xlCenter  ' Canh giua theo chieu ngang (Center)
-        End With
-        
-        ' Ke vien cho toan bo bang
-        Set borderRange = .Range("A1:N" & finalDataRow + 3)
-        With borderRange.Borders
-            .LineStyle = xlContinuous
-            .Weight = xlThin
-        End With
-        borderRange.BorderAround LineStyle:=xlContinuous, Weight:=xlMedium
-
-        If .DrawingObjects.Count > 0 Then .DrawingObjects.Delete
-        
-        ' Doi ten sheet va lam sach ten file
-        If .Range("O1").Value <> "" Then
-            .Name = .Range("O1").Value
-            fileNamePart = .Range("O1").Value
+            ' Ghi toan bo mang STT vao cot A, bat dau tu A4
+            .Range("A4").Resize(resultCounter, 1).Value = sttArray
+            ' === KET THUC PHAN TAO SO THU TU ===
+            
+            ' Ghi du lieu chinh vao B4:N
+            .Range("B4").Resize(resultCounter, 13).Value = resultsData
+            
+            ' Ghi ten nguoi lap
+            Dim lastDataRow As Long
+            lastDataRow = 4 + resultCounter - 1
+            .Cells(lastDataRow + 2, "G").Value = "NGUY" & ChrW(7876) & "N TH" & ChrW(7882) & " M" _
+        & ChrW(7896) & "NG TUY" & ChrW(7870) & "T"
+            
+            ' Ke vien cho toan bo bang du lieu
+            Dim borderRange As Range
+            Set borderRange = .Range("A3:N" & lastDataRow + 2)
+            With borderRange.Borders
+                .LineStyle = xlContinuous
+                .Weight = xlThin
+            End With
+            borderRange.BorderAround LineStyle:=xlContinuous, Weight:=xlMedium
+            
         Else
-            fileNamePart = "BaoCao" ' Ten mac dinh neu O1 trong
+            ' Thong bao neu khong tim thay du lieu
+            MsgBox "KHONG TIM THAY DU LIEU PHU HOP VOI DOT: '" & .Range(INPUT_CELL).Value & "'", vbExclamation, "Thong bao"
         End If
     End With
-    
-    ' Lam sach ten file de tranh loi
-    fileNamePart = Replace(Replace(Replace(Replace(Replace(Replace(Replace(Replace(Replace(fileNamePart, "/", "-"), "\", "-"), ":", ""), "*", ""), "?", ""), """", ""), "<", ""), ">", ""), "|", "")
-    fileName = "K-HOME CAN HO Ð_" & fileNamePart & "_" & Format(Date, "yyyymmdd") & ".xlsx"
-    
-    If Right(folderPath, 1) <> Application.PathSeparator Then folderPath = folderPath & Application.PathSeparator
-    
-    fullSavePath = folderPath & fileName
-    
-    newWb.SaveAs fileName:=fullSavePath, FileFormat:=xlOpenXMLWorkbook
-    
-' --- KET THUC VA DON DEP ---
+
+' --- DON DEP VA KET THUC ---
 CleanupAndExit:
     Application.ScreenUpdating = True
-    Application.DisplayAlerts = True
+    Application.Calculation = xlCalculationAutomatic
     Application.EnableEvents = True
-    Application.CutCopyMode = False
+    Set sourceSheet = Nothing
+    Set reportSheet = Nothing
     
     If Err.Number <> 0 Then
         MsgBox "Da co loi xay ra!" & vbCrLf & vbCrLf & _
