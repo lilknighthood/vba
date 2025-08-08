@@ -1,16 +1,12 @@
-Option Explicit
-
 '======================================================='
-'   CLASS MODULE: clsNhaTret - Phien ban sua loi cu phap  '
+'   CLASS MODULE: clsNhaTret (logic m?i)               '
 '======================================================='
 
-' --- HANG SO ---
 Private Const MAX_PAYMENT_PERIODS As Integer = 20
-Private Const HDMB_KEYWORD As String = "HÐMB"
 Private Const SHEET_SETUP As String = "Setup"
 Private Const SHEET_TIENDO As String = "TIEN_DO_TT"
 
-' --- CAC THUOC TINH PUBLIC (DAU VAO) ---
+'--- INPUT ---
 Public RowNum As Long
 Public TongThanhTien As Currency
 Public MaSoLo As String
@@ -20,124 +16,101 @@ Public NgayTTDot1 As Date
 Public ThanhTienDat_Input As Currency
 Public ThanhTienNha_Input As Currency
 
-' --- CAC THUOC TINH PUBLIC (DAU RA) ---
+'--- OUTPUT ---
 Public SoHopDong As String
 Public GiaTriGocDeTinhTienDo As Currency
 Public GiaTriDeGhiVaoCotCoc As Currency
 Public TiLeThanhToanDot1 As Double
 
-' --- BIEN THANH VIEN PRIVATE ---
+'--- PRIVATE ---
 Private m_TienDoThanhToan() As Variant
 Private m_wsSetup As Worksheet
 Private m_wsTienDo As Worksheet
-
-'========================================================================
-'                       KHOI TAO CLASS
-'========================================================================
+Private m_TotalPct As Double   ' T?ng % ti?n d? (d?ng th?p phân)
 
 Private Sub Class_Initialize()
     On Error GoTo ErrorHandler
     Set m_wsSetup = ThisWorkbook.Sheets(SHEET_SETUP)
     Set m_wsTienDo = ThisWorkbook.Sheets(SHEET_TIENDO)
     Exit Sub
-
 ErrorHandler:
-    MsgBox "LOI KHOI TAO CLASS!" & vbCrLf & vbCrLf & _
-           "Khong the tim thay sheet co ten: """ & Err.Description & """." & vbCrLf & _
-           "Vui long kiem tra lai ten sheet trong file Excel.", vbCritical, "Loi Thiet Lap Sheet"
+    MsgBox "LOI KHOI TAO CLASS!" & vbCrLf & Err.Description, vbCritical
     End
 End Sub
-
-'========================================================================
-'                       CAC THUOC TINH CHI DOC
-'========================================================================
 
 Public Property Get TienDoThanhToan() As Variant
     TienDoThanhToan = m_TienDoThanhToan
 End Property
 
 Public Property Get IsHDMBContract() As Boolean
-    Dim upperTenTienDo As String
-    upperTenTienDo = UCase(Me.TenTienDo)
-    IsHDMBContract = (InStr(1, upperTenTienDo, "HÐMB") > 0) Or (InStr(1, upperTenTienDo, "HDMB") > 0)
+    Dim nm As String
+    nm = UCase$(Me.TenTienDo)
+    IsHDMBContract = (InStr(1, nm, "HÐMB") > 0) Or (InStr(1, nm, "HDMB") > 0)
 End Property
 
-'========================================================================
-'                       CAC PHUONG THUC PUBLIC CHINH
-'========================================================================
-
+'=== LOGIC M?I ===
 Public Sub XacDinhGiaTriGoc(ByVal totalPercentage As Double)
+    ' Luôn dùng THÀNH_TI?N
+    Me.GiaTriGocDeTinhTienDo = Me.TongThanhTien
+    
+    ' Luu t?ng % cho công th?c d?t cu?i
+    m_TotalPct = totalPercentage
+    
+    ' Giá tr? ghi c?t C?C: HÐMB = 0, ngu?c l?i = THÀNH_TI?N
     If Me.IsHDMBContract Then
-        Me.GiaTriGocDeTinhTienDo = Me.TongThanhTien
         Me.GiaTriDeGhiVaoCotCoc = 0
     Else
-        Me.GiaTriGocDeTinhTienDo = VBA.Round(Me.TongThanhTien * totalPercentage, 0)
-        Me.GiaTriDeGhiVaoCotCoc = Me.GiaTriGocDeTinhTienDo
+        Me.GiaTriDeGhiVaoCotCoc = Me.TongThanhTien
     End If
 End Sub
 
 Public Sub TaoSoHopDong()
     If Len(Trim(Me.MaSoLo)) = 0 Or Not IsDate(Me.NgayKy) Or Len(Trim(Me.TenTienDo)) = 0 Then Exit Sub
-    Dim contractTemplate As String: contractTemplate = GetContractTemplate(Me.TenTienDo)
-    If Len(contractTemplate) = 0 Then Exit Sub
-    Dim result As String: result = contractTemplate
-    result = Replace(result, "[NAMKY]", CStr(Year(Me.NgayKy)), 1, -1, vbTextCompare)
-    result = Replace(result, "[LO-O]", Me.MaSoLo, 1, -1, vbTextCompare)
-    Me.SoHopDong = result
+    Dim tpl As String: tpl = GetContractTemplate(Me.TenTienDo)
+    If Len(tpl) = 0 Then Exit Sub
+    tpl = Replace(tpl, "[NAMKY]", CStr(Year(Me.NgayKy)), 1, -1, vbTextCompare)
+    tpl = Replace(tpl, "[LO-O]", Me.MaSoLo, 1, -1, vbTextCompare)
+    Me.SoHopDong = tpl
 End Sub
 
 Public Sub TinhTienDoThanhToan()
     If Me.GiaTriGocDeTinhTienDo <= 0 Then Exit Sub
-    Dim scheduleRow As Long: scheduleRow = FindScheduleRow()
-    If scheduleRow = 0 Then Exit Sub
+    Dim rowSch As Long: rowSch = FindScheduleRow()
+    If rowSch = 0 Then Exit Sub
     
-    '======================================================='
-    '            *** SUA LOI CU PHAP TAI DAY ***
-    ' Chuyen cau lenh If...Then...Else thanh mot khoi da dong
-    '======================================================='
-    Dim tiLeDot1Value As Variant
-    tiLeDot1Value = m_wsTienDo.Cells(scheduleRow, 5).Value
-    If IsNumeric(tiLeDot1Value) Then
-        Me.TiLeThanhToanDot1 = CDbl(tiLeDot1Value)
-    Else
-        Me.TiLeThanhToanDot1 = 0
-    End If
-    '======================================================='
-    '                KET THUC THAY DOI
-    '======================================================='
-
-    Dim lastPeriod As Integer: lastPeriod = FindLastPaymentPeriod(scheduleRow)
+    Dim v As Variant: v = m_wsTienDo.Cells(rowSch, 5).Value
+    If IsNumeric(v) Then Me.TiLeThanhToanDot1 = CDbl(v) Else Me.TiLeThanhToanDot1 = 0
+    
+    Dim lastPeriod As Integer: lastPeriod = FindLastPaymentPeriod(rowSch)
     If lastPeriod = 0 Then Exit Sub
     
-    BuildPaymentSchedule scheduleRow, lastPeriod
+    BuildPaymentSchedule rowSch, lastPeriod
 End Sub
 
-'========================================================================
-'                       CAC PHUONG THUC PHU TRO (PRIVATE)
-'========================================================================
+'----------------- PRIVATE HELPERS ----------------------
 
 Private Function GetContractTemplate(ByVal lookupValue As String) As String
-    Dim lookupRange As Range, defaultTemplate As String, contractTemplate As String, i As Long
+    Dim rng As Range, defTpl As String, tpl As String, i As Long
     On Error Resume Next
-    Set lookupRange = m_wsSetup.Range("G2:H" & m_wsSetup.Cells(m_wsSetup.Rows.Count, "G").End(xlUp).row)
+    Set rng = m_wsSetup.Range("G2:H" & m_wsSetup.Cells(m_wsSetup.Rows.Count, "G").End(xlUp).row)
     On Error GoTo 0
-    If lookupRange Is Nothing Or lookupRange.Rows.Count < 1 Then Exit Function
-    defaultTemplate = lookupRange.Cells(lookupRange.Rows.Count, 2).Value
-    contractTemplate = defaultTemplate
-    For i = 1 To lookupRange.Rows.Count - 1
-        If Trim(UCase(lookupRange.Cells(i, 1).Value)) = Trim(UCase(lookupValue)) Then
-            contractTemplate = lookupRange.Cells(i, 2).Value
+    If rng Is Nothing Or rng.Rows.Count < 1 Then Exit Function
+    defTpl = rng.Cells(rng.Rows.Count, 2).Value
+    tpl = defTpl
+    For i = 1 To rng.Rows.Count - 1
+        If Trim$(UCase$(rng.Cells(i, 1).Value)) = Trim$(UCase$(lookupValue)) Then
+            tpl = rng.Cells(i, 2).Value
             Exit For
         End If
     Next i
-    GetContractTemplate = contractTemplate
+    GetContractTemplate = tpl
 End Function
 
 Private Function FindScheduleRow() As Long
-    Dim lastRow As Long, i As Long
+    Dim i As Long, lastRow As Long
     lastRow = m_wsTienDo.Cells(m_wsTienDo.Rows.Count, "C").End(xlUp).row
     For i = 1 To lastRow
-        If Trim(UCase(m_wsTienDo.Cells(i, "C").Value)) = Trim(UCase(Me.TenTienDo)) Then
+        If Trim$(UCase$(m_wsTienDo.Cells(i, "C").Value)) = Trim$(UCase$(Me.TenTienDo)) Then
             FindScheduleRow = i
             Exit Function
         End If
@@ -145,11 +118,11 @@ Private Function FindScheduleRow() As Long
 End Function
 
 Private Function FindLastPaymentPeriod(ByVal scheduleRow As Long) As Integer
-    Dim i As Integer, colIndex As Integer, cellValue As Variant
+    Dim i As Integer, col As Integer, val As Variant
     For i = MAX_PAYMENT_PERIODS To 1 Step -1
-        colIndex = (i - 1) * 2 + 5
-        cellValue = m_wsTienDo.Cells(scheduleRow, colIndex).Value
-        If IsNumeric(cellValue) And Len(CStr(cellValue)) > 0 Then
+        col = (i - 1) * 2 + 5
+        val = m_wsTienDo.Cells(scheduleRow, col).Value
+        If IsNumeric(val) And Len(CStr(val)) > 0 Then
             FindLastPaymentPeriod = i
             Exit Function
         End If
@@ -158,38 +131,44 @@ End Function
 
 Private Sub BuildPaymentSchedule(ByVal scheduleRow As Long, ByVal lastPeriod As Integer)
     ReDim m_TienDoThanhToan(1 To lastPeriod, 1 To 2)
-    Dim totalPaid As Currency, currentPaymentDate As Date, i As Integer
-    totalPaid = 0: currentPaymentDate = Me.NgayTTDot1
+    Dim totalPaid As Currency, currentDate As Date, i As Integer
+    totalPaid = 0
+    currentDate = Me.NgayTTDot1
     
     For i = 1 To lastPeriod
-        Dim paymentAmount As Currency
+        Dim pay As Currency
         If i < lastPeriod Then
-            Dim percentage As Variant
-            percentage = m_wsTienDo.Cells(scheduleRow, (i - 1) * 2 + 5).Value
-            If IsNumeric(percentage) Then
-                paymentAmount = VBA.Round(Me.GiaTriGocDeTinhTienDo * CDbl(percentage), 0)
+            Dim pct As Variant
+            pct = m_wsTienDo.Cells(scheduleRow, (i - 1) * 2 + 5).Value
+            If IsNumeric(pct) Then
+                pay = VBA.Round(Me.GiaTriGocDeTinhTienDo * CDbl(pct), 0)
             Else
-                paymentAmount = 0
+                pay = 0
             End If
-            totalPaid = totalPaid + paymentAmount
+            totalPaid = totalPaid + pay
         Else
-            paymentAmount = Me.GiaTriGocDeTinhTienDo - totalPaid
+            ' --- Ð?T CU?I: (THÀNH_TI?N * T?NG %) - các d?t tru?c ---
+            Dim targetTotal As Currency
+            targetTotal = VBA.Round(Me.TongThanhTien * m_TotalPct, 0)
+            pay = targetTotal - totalPaid
+            If pay < 0 Then pay = 0
         End If
-        m_TienDoThanhToan(i, 1) = paymentAmount
         
+        m_TienDoThanhToan(i, 1) = pay
+        
+        ' Ngày
         If i = 1 Then
-            m_TienDoThanhToan(i, 2) = currentPaymentDate
+            m_TienDoThanhToan(i, 2) = currentDate
         Else
-            Dim daysToAdd As Variant
-            daysToAdd = m_wsTienDo.Cells(scheduleRow, (i - 2) * 2 + 6).Value
-            If IsNumeric(daysToAdd) And Len(CStr(daysToAdd)) > 0 Then
-                currentPaymentDate = DateAdd("d", CLng(daysToAdd), currentPaymentDate)
-                m_TienDoThanhToan(i, 2) = currentPaymentDate
+            Dim dAdd As Variant
+            dAdd = m_wsTienDo.Cells(scheduleRow, (i - 2) * 2 + 6).Value
+            If IsNumeric(dAdd) And Len(CStr(dAdd)) > 0 Then
+                currentDate = DateAdd("d", CLng(dAdd), currentDate)
+                m_TienDoThanhToan(i, 2) = currentDate
             Else
                 m_TienDoThanhToan(i, 2) = ""
             End If
         End If
     Next i
 End Sub
-
 
