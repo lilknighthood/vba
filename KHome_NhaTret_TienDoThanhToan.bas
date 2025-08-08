@@ -7,7 +7,7 @@ Public Sub TinhTienDoThanhToan(ByVal activeRow As Long, ByVal giaBanCanHo As Cur
 
     '--- DOC CAU HINH CHO PHAN 2 ---
     Set wsSetup = ThisWorkbook.Sheets("Setup")
-    Set wsData = ThisWorkbook.Sheets("CAN HO K-HOME")
+    Set wsData = ThisWorkbook.Sheets("FILE TONG HOA PHU - K HOME")
     Set wsTienDo = ThisWorkbook.Sheets("TIEN_DO_TT")
     
     With wsSetup
