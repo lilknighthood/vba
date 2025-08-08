@@ -1,12 +1,3 @@
-VERSION 1.0 CLASS
-BEGIN
-  MultiUse = -1  'True
-END
-Attribute VB_Name = "clsNhaTret"
-Attribute VB_GlobalNameSpace = False
-Attribute VB_Creatable = False
-Attribute VB_PredeclaredId = False
-Attribute VB_Exposed = False
 Option Explicit
 
 '======================================================='
@@ -15,7 +6,7 @@ Option Explicit
 
 ' --- HANG SO ---
 Private Const MAX_PAYMENT_PERIODS As Integer = 20
-Private Const HDMB_KEYWORD As String = "HÐMB"
+Private Const HDMB_KEYWORD As String = "HÃMB"
 Private Const SHEET_SETUP As String = "Setup"
 Private Const SHEET_TIENDO As String = "TIEN_DO_TT"
 
@@ -68,7 +59,7 @@ End Property
 Public Property Get IsHDMBContract() As Boolean
     Dim upperTenTienDo As String
     upperTenTienDo = UCase(Me.TenTienDo)
-    IsHDMBContract = (InStr(1, upperTenTienDo, "HÐMB") > 0) Or (InStr(1, upperTenTienDo, "HDMB") > 0)
+    IsHDMBContract = (InStr(1, upperTenTienDo, "HÃMB") > 0) Or (InStr(1, upperTenTienDo, "HDMB") > 0)
 End Property
 
 '========================================================================
@@ -200,4 +191,5 @@ Private Sub BuildPaymentSchedule(ByVal scheduleRow As Long, ByVal lastPeriod As 
         End If
     Next i
 End Sub
+
 
