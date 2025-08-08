@@ -1,4 +1,3 @@
-Attribute VB_Name = "MainModule"
 Option Explicit
 
 '======================================================='
@@ -75,7 +74,7 @@ Private Function ReadConfig(ByVal setupSheetName As String) As Object
         .Add "colBC_ThanhTien", Trim(ws.Range("B7").Value)         ' BE
         .Add "colBC_TienCoc", Trim(ws.Range("B8").Value)           ' BF
         .Add "colStartBC", Trim(ws.Range("B9").Value)              ' BG (BC_dot_1)
-        .Add "colCoc_NonHDMB_Output", Trim(ws.Range("B10").Value)  ' F (vÌ d?)
+        .Add "colCoc_NonHDMB_Output", Trim(ws.Range("B10").Value)  ' F (v√≠ d?)
         .Add "colLoO", Trim(ws.Range("B11").Value)                 ' F
         .Add "colNgayKy", Trim(ws.Range("B12").Value)              ' H
         .Add "colSoHD", Trim(ws.Range("B13").Value)                ' I
@@ -119,24 +118,24 @@ Private Function SumSchedulePercentages(ByVal wsTienDo As Worksheet, ByVal sched
     Next dongTienDo
 End Function
 
-'===================== WRITE (d„ lo?i tr? BE kh?i CLEAR) =====================
+'===================== WRITE (d√£ lo?i tr? BE kh?i CLEAR) =====================
 Private Sub WriteResultsToSheet(ByVal nhaTret As clsNhaTret, ByVal ws As Worksheet, ByVal conf As Object)
     Dim r As Long: r = nhaTret.RowNum
     With ws
-        ' 1) S? H–
+        ' 1) S? H√ê
         .Range(conf("colSoHD") & r).Value = nhaTret.SoHopDong
         
-        ' 2) TÌnh c·c c?t m?c
+        ' 2) T√≠nh c√°c c?t m?c
         Dim colTien As Long, colNgay As Long, colBC As Long
         colTien = .Range(conf("colStartTienTT") & 1).Column
         colNgay = .Range(conf("colNgayTT1") & 1).Column
         colBC = .Range(conf("colStartBC") & 1).Column
         
-        ' C?t BC_TH¿NH_TI?N (vÌ d? BE) d? lo?i kh?i CLEAR
+        ' C?t BC_TH√ÄNH_TI?N (v√≠ d? BE) d? lo?i kh?i CLEAR
         Dim bcThanhTienCol As Long
         bcThanhTienCol = .Range(conf("colBC_ThanhTien") & 1).Column
         
-        ' 3) Xo· ti?n/ng‡y/BC_–?T_* (B? QUA c?t BE)
+        ' 3) Xo√° ti?n/ng√†y/BC_√ê?T_* (B? QUA c?t BE)
         Dim i As Integer, tgtCol As Long
         For i = 1 To MAX_PAYMENT_PERIODS
             .Cells(r, colTien + (i - 1) * 2).ClearContents
@@ -148,10 +147,10 @@ Private Sub WriteResultsToSheet(ByVal nhaTret As clsNhaTret, ByVal ws As Workshe
             End If
         Next i
         
-        ' 4) T? l? –?t 1
+        ' 4) T? l? √ê?t 1
         .Range(conf("colTiLeTT_Dot1_Output") & r).Value = nhaTret.TiLeThanhToanDot1
         
-        ' 5) C?c (v‡ b?ng ch? ti?n c?c)
+        ' 5) C?c (v√† b?ng ch? ti?n c?c)
         If Not nhaTret.IsHDMBContract Then
             .Range(conf("colCoc_NonHDMB_Output") & r).Value = nhaTret.GiaTriDeGhiVaoCotCoc
             If nhaTret.GiaTriDeGhiVaoCotCoc > 0 Then
@@ -164,7 +163,7 @@ Private Sub WriteResultsToSheet(ByVal nhaTret As clsNhaTret, ByVal ws As Workshe
             .Range(conf("colBC_TienCoc") & r).ClearContents
         End If
         
-        ' 6) Ghi l?ch thanh to·n theo d?t + BC_–?T_i (b?ng ch?)
+        ' 6) Ghi l?ch thanh to√°n theo d?t + BC_√ê?T_i (b?ng ch?)
         Dim scheduleArray As Variant
         scheduleArray = nhaTret.TienDoThanhToan
         
@@ -192,14 +191,14 @@ Private Sub WriteResultsToSheet(ByVal nhaTret As clsNhaTret, ByVal ws As Workshe
             End If
         End If
         
-        ' 7) KI?M_TRA = T?ng c·c d?t thanh to·n (Setup!B15)
+        ' 7) KI?M_TRA = T?ng c√°c d?t thanh to√°n (Setup!B15)
         Dim colKiemTra As Long
         colKiemTra = .Range(conf("colKiemTra") & 1).Column
         .Cells(r, colKiemTra).Value = sumKiemTra
-        ' N?u mu?n b?ng ch?: d˘ng dÚng du?i v‡ b? dÚng trÍn
+        ' N?u mu?n b?ng ch?: d√πng d√≤ng du?i v√† b? d√≤ng tr√™n
         ' .Cells(r, colKiemTra).Value = vnd(sumKiemTra)
         
-        ' 8) Cu?i c˘ng ghi BC_TH¿NH_TI?N (BE) d? ch?c ch?n khÙng b? xo·
+        ' 8) Cu?i c√πng ghi BC_TH√ÄNH_TI?N (BE) d? ch?c ch?n kh√¥ng b? xo√°
         Dim ttNum As Currency, rawVal As Variant, s As String
         rawVal = nhaTret.TongThanhTien
         s = Trim(CStr(rawVal))
@@ -228,4 +227,5 @@ Private Sub ShowSummaryMsg(ByVal processedCount As Long, ByVal skippedRows As St
     End If
     MsgBox finalMsg, vbInformation, "Ket qua tinh toan"
 End Sub
+
 
