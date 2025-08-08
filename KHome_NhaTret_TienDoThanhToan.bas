@@ -1,22 +1,21 @@
 Option Explicit
-
-Public Sub TinhTienDoThanhToan(ByVal activeRow As Long)
+Public Sub TinhTienDoThanhToan(ByVal activeRow As Long, ByVal giaBanCanHo As Currency)
     '--- KHAI BAO ---
     Dim wsSetup As Worksheet, wsData As Worksheet, wsTienDo As Worksheet
     Dim colTenTienDo As String, colBatDauTraTien As String, colBatDauNgayTT As String, colBC_Dot1 As String
-    Dim colTiLeTT As String
+    Dim colTiLeTT As String '*** BIEN MOI: Cot Ti Le TT ***
 
-    '--- DOC CAU HINH (DA CAP NHAT) ---
+    '--- DOC CAU HINH CHO PHAN 2 ---
     Set wsSetup = ThisWorkbook.Sheets("Setup")
-    Set wsData = ThisWorkbook.Sheets("FILE TONG HOA PHU - K HOME")
+    Set wsData = ThisWorkbook.Sheets("CAN HO K-HOME")
     Set wsTienDo = ThisWorkbook.Sheets("TIEN_DO_TT")
     
     With wsSetup
-        colTenTienDo = .Range("B4").Value
-        colBatDauTraTien = .Range("B5").Value
-        colBatDauNgayTT = .Range("B6").Value
-        colBC_Dot1 = .Range("B9").Value
-        colTiLeTT = .Range("B10").Value
+        colTenTienDo = .Range("B7").Value
+        colBatDauTraTien = .Range("B8").Value
+        colBatDauNgayTT = .Range("B9").Value
+        colBC_Dot1 = .Range("B15").Value
+        colTiLeTT = .Range("B16").Value '*** Doc them cau hinh tu B16 ***
     End With
 
     '========================================================================
@@ -26,21 +25,7 @@ Public Sub TinhTienDoThanhToan(ByVal activeRow As Long)
     tenTienDoCanTim = wsData.Range(colTenTienDo & activeRow).Value
     If tenTienDoCanTim = "" Then Exit Sub
     
-    '--- Doc gia tri thanh tien tu cot Q, R va tinh tong vao cot S ---
-    Dim thanhTienDat As Currency, thanhTienNha As Currency, thanhTienNhaVaDat As Currency
-    
-    ' Doc gia tri tu cot Q va R, neu rong thi coi nhu la 0
-    thanhTienDat = Nz(wsData.Range("Q" & activeRow).Value, 0)
-    thanhTienNha = Nz(wsData.Range("R" & activeRow).Value, 0)
-    
-    ' Tinh tong va ghi vao cot S
-    thanhTienNhaVaDat = thanhTienDat + thanhTienNha
-    wsData.Range("S" & activeRow).Value = thanhTienNhaVaDat
-    
-    ' Neu tong gia tri la 0 thi khong can tinh toan tiep
-    If thanhTienNhaVaDat = 0 Then Exit Sub
-    
-    '--- Tim dong tien do ---
+    'Tim dong tien do
     Dim dongTienDo As Long, timThay As Boolean
     timThay = False
     For dongTienDo = 1 To wsTienDo.Cells(wsTienDo.Rows.Count, "C").End(xlUp).row
@@ -48,7 +33,7 @@ Public Sub TinhTienDoThanhToan(ByVal activeRow As Long)
     Next dongTienDo
     If Not timThay Then Exit Sub
     
-    '--- Lay va ghi Ti Le TT cua Dot 1 ---
+    '*** MOI: Lay va ghi Ti Le TT cua Dot 1 ***
     Dim tiLeDot1 As Variant
     tiLeDot1 = wsTienDo.Cells(dongTienDo, 5).Value 'Cot E la ty le % dot 1
     If IsNumeric(tiLeDot1) And tiLeDot1 <> "" Then
@@ -60,7 +45,7 @@ Public Sub TinhTienDoThanhToan(ByVal activeRow As Long)
     '--- BUOC 1: Tim dot cuoi cung co gia tri ---
     Dim dotCuoiCung As Integer, i As Integer
     dotCuoiCung = 0
-    For i = 16 To 1 Step -1
+    For i = 20 To 1 Step -1
         If IsNumeric(wsTienDo.Cells(dongTienDo, (i - 1) * 2 + 5).Value) And wsTienDo.Cells(dongTienDo, (i - 1) * 2 + 5).Value <> "" Then
             dotCuoiCung = i
             Exit For
@@ -84,19 +69,15 @@ Public Sub TinhTienDoThanhToan(ByVal activeRow As Long)
     For i = 1 To dotCuoiCung
         If i < dotCuoiCung Then
             tyLePhanTram = wsTienDo.Cells(dongTienDo, (i - 1) * 2 + 5).Value
-            soTienPhaiTra = VBA.Round(thanhTienNhaVaDat * tyLePhanTram, 0)
+            soTienPhaiTra = VBA.Round(giaBanCanHo * tyLePhanTram, 0)
             tongTienDaTra = tongTienDaTra + soTienPhaiTra
         Else
-            soTienPhaiTra = thanhTienNhaVaDat - tongTienDaTra
+            soTienPhaiTra = giaBanCanHo - tongTienDaTra
         End If
         
-        ' Ghi so tien bang so
         wsData.Cells(activeRow, colIndexOutput + (i - 1) * 2).Value = soTienPhaiTra
-        
-        ' *** GIU NGUYEN: Ghi so tien bang chu, su dung ham vnd() ***
         wsData.Cells(activeRow, colIndexBC_Dot1 + i - 1).Value = vnd(soTienPhaiTra)
         
-        ' Tinh toan ngay thang cho cac dot tiep theo
         If i > 1 Then
             soNgayCongThem = wsTienDo.Cells(dongTienDo, (i - 2) * 2 + 6).Value
             If IsNumeric(soNgayCongThem) And soNgayCongThem <> "" Then
@@ -110,19 +91,12 @@ Public Sub TinhTienDoThanhToan(ByVal activeRow As Long)
     Next i
     
     '--- BUOC 3: Xoa du lieu thua o cac dot sau dot cuoi cung ---
-    For i = dotCuoiCung + 1 To 16
+    For i = dotCuoiCung + 1 To 20
         wsData.Cells(activeRow, colIndexOutput + (i - 1) * 2).ClearContents
         wsData.Cells(activeRow, colIndexBC_Dot1 + i - 1).ClearContents
         wsData.Cells(activeRow, colIndexNgayOutput + (i - 1) * 2).ClearContents
     Next i
 End Sub
 
-'Luu y: Ham Nz (Non-Zero) la mot ham tich hop san trong VBA (Access) nhung khong co san trong Excel.
-'Ban can them ham nay vao module de tranh loi.
-Public Function Nz(ByVal Value As Variant, Optional ByVal ValueIfNull As Variant = 0) As Variant
-    If IsNull(Value) Or IsEmpty(Value) Or Value = "" Then
-        Nz = ValueIfNull
-    Else
-        Nz = Value
-    End If
-End Function
+
+
