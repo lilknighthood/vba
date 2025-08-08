@@ -12,9 +12,9 @@ Sub TinhToanTongHop_ChoDongHienTai()
     processedCount = 0
     
     '--- KHAI BAO CAU HINH ---
-    Dim colTienDat As String, colDtThongThuy As String, colTenTienDo As String, colBatDauNgayTT As String
-    Dim colTienNha As String, colGiaTriQSDD As String, ColNhaVaDat As String, colPhiBaoTri As String
-    Dim colBC_NhaVaDat As String, colBC_GiaTriCH As String, colBC_TienDatCoc As String, colBC_ThueGTGT As String, colBC_BatDauDot1 As String
+    Dim colGiaBan As String, colDtThongThuy As String, colTenTienDo As String, colBatDauNgayTT As String
+    Dim colGiaTriCanHo As String, colGiaTriQSDD As String, colThueGTGT As String, colPhiBaoTri As String
+    Dim colBC_GiaBan As String, colBC_GiaTriCH As String, colBC_GiaTriQSDD As String, colBC_ThueGTGT As String, colBC_PhiBaoTri As String
 
     '--- DOC CAU HINH ---
     On Error Resume Next
@@ -26,18 +26,18 @@ Sub TinhToanTongHop_ChoDongHienTai()
     On Error GoTo 0
     
     With wsSetup
-        colTienDat = .Range("B1").Value
-        colTienNha = .Range("B2").Value
-        ColNhaVaDat = .Range("B3").Value
-        colTenTienDo = .Range("B4").Value
-        colBatDauNgayTT = .Range("B6").Value
-        colBC_NhaVaDat = .Range("B7").Value
-        colBC_TienDatCoc = .Range("B8").Value
-        colBC_BatDauDot1 = .Range("B9").Value
+        colGiaBan = .Range("B1").Value: colDtThongThuy = .Range("B2").Value
+        colGiaTriCanHo = .Range("B3").Value: colGiaTriQSDD = .Range("B4").Value
+        colThueGTGT = .Range("B5").Value: colPhiBaoTri = .Range("B6").Value
+        colTenTienDo = .Range("B7").Value
+        colBatDauNgayTT = .Range("B9").Value
+        colBC_GiaBan = .Range("B10").Value: colBC_GiaTriCH = .Range("B11").Value
+        colBC_GiaTriQSDD = .Range("B12").Value: colBC_ThueGTGT = .Range("B13").Value
+        colBC_PhiBaoTri = .Range("B14").Value
     End With
 
     '--- KHOI TAO ---
-    Set wsData = ThisWorkbook.Sheets("FILE TONG HOA PHU - K HOME")
+    Set wsData = ThisWorkbook.Sheets("CAN HO K-HOME")
     Application.ScreenUpdating = False
 
     '*** VONG LAP QUA TUNG DONG VA KIEM TRA XEM DONG CO BI AN KHONG ***
@@ -63,7 +63,40 @@ Sub TinhToanTongHop_ChoDongHienTai()
                 '========================================================================
                 '   PHAN 2: TINH TOAN CAC GIA TRI CO BAN CUA CAN HO
                 '========================================================================
-                Call TinhTienDoThanhToan(activeRow)
+                Dim heSoDat As Double
+                Dim giaBanCanHo As Currency, dtThongThuy As Double
+                Dim giaTriQSDD As Currency, giaTriCanHo As Currency, thueGTGT As Currency, phiBaoTri As Currency
+                
+                heSoDat = 729754.9204
+                giaBanCanHo = wsData.Range(colGiaBan & activeRow).Value
+                dtThongThuy = wsData.Range(colDtThongThuy & activeRow).Value
+                
+                If giaBanCanHo > 0 And dtThongThuy > 0 Then
+                    giaTriQSDD = dtThongThuy * heSoDat
+                    giaTriCanHo = (giaBanCanHo - giaTriQSDD) / 1.1
+                    thueGTGT = giaTriCanHo * 0.1
+                    phiBaoTri = (giaTriQSDD + giaTriCanHo) * 0.02
+                    
+                    With wsData
+                        .Range(colGiaTriCanHo & activeRow).Value = giaTriCanHo
+                        .Range(colGiaTriQSDD & activeRow).Value = giaTriQSDD
+                        .Range(colThueGTGT & activeRow).Value = thueGTGT
+                        .Range(colPhiBaoTri & activeRow).Value = phiBaoTri
+                        
+                        .Range(colBC_GiaBan & activeRow).Value = vnd(giaBanCanHo)
+                        .Range(colBC_GiaTriCH & activeRow).Value = vnd(giaTriCanHo)
+                        .Range(colBC_GiaTriQSDD & activeRow).Value = vnd(giaTriQSDD)
+                        .Range(colBC_ThueGTGT & activeRow).Value = vnd(thueGTGT)
+                        .Range(colBC_PhiBaoTri & activeRow).Value = vnd(phiBaoTri)
+                    End With
+                    
+                    '========================================================================
+                    '   GOI SUB PHU DE THUC HIEN PHAN 3
+                    '========================================================================
+                    Call TinhTienDoThanhToan(activeRow, giaBanCanHo)
+                Else
+                     skippedRows = skippedRows & "Dong " & activeRow & ": Loi du lieu (Gia ban hoac DTSD)" & vbCrLf
+                End If
             End If
         End If
     Next row
