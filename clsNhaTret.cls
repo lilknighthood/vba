@@ -175,61 +175,46 @@ Private Function FindLastPaymentPeriod(ByVal scheduleRow As Long) As Integer
 End Function
 
 Private Sub BuildPaymentSchedule(ByVal scheduleRow As Long, ByVal lastPeriod As Integer)
-    ' Mo rong mang 4 cot: [1] So tien, [2] Ngay TT, [3] % goc, [4] So ngay cong don
+    ' Mo rong mang len 4 cot: So tien, Ngay TT, % tinh duoc, So ngay tang
     ReDim m_TienDoThanhToan(1 To lastPeriod, 1 To 4)
 
-    Dim totalPaid As Currency
-    Dim currentDate As Date
-    Dim i As Integer
+    Dim totalPaid As Currency, currentDate As Date
     totalPaid = 0
     currentDate = Me.NgayTTDot1
 
-    ' Lay % Dot 1 va Dot 2 tu sheet TIEN_DO_TT
     Dim pctDot1 As Variant, pctDot2 As Variant
-    pctDot1 = m_wsTienDo.Cells(scheduleRow, 5).value     ' Cot E
-    pctDot2 = m_wsTienDo.Cells(scheduleRow, 7).value     ' Cot G
+    pctDot1 = m_wsTienDo.Cells(scheduleRow, 5).value     ' Cot E – Dot 1
+    pctDot2 = m_wsTienDo.Cells(scheduleRow, 7).value     ' Cot G – Dot 2
 
-    Dim isDot1Empty As Boolean, isDot2Empty As Boolean
+    Dim isDot1Empty As Boolean, isDot2Empty As Boolean, isDot1_25pct As Boolean
     isDot1Empty = Not (IsNumeric(pctDot1) And Len(CStr(pctDot1)) > 0)
     isDot2Empty = Not (IsNumeric(pctDot2) And Len(CStr(pctDot2)) > 0)
+    isDot1_25pct = (IsNumeric(pctDot1) And Abs(CDbl(pctDot1) - 0.25) < 0.0001)
 
+    Dim i As Integer
     For i = 1 To lastPeriod
-        Dim pct_raw As Variant
-        Dim days_raw As Variant
-        Dim pay As Currency
-
-        ' Lay du lieu goc % va Ngay cong don
+        Dim pay As Currency, pct_raw As Variant, days_raw As Variant
         pct_raw = m_wsTienDo.Cells(scheduleRow, (i - 1) * 2 + 5).value
         days_raw = m_wsTienDo.Cells(scheduleRow, (i - 2) * 2 + 6).value
 
-        ' === 3 TRUONG HOP DAC BIET HÐMB ===
+        ' === 3 TRUONG HOP HÐMB ===
         If Me.IsHDMBContract Then
             If i = 1 And isDot1Empty Then
-                ' TH1: Dot 1 trong ? nhap thu cong (AB)
                 pay = m_ManualDot1
 
             ElseIf i = 2 And isDot1Empty Then
-                ' Dot 2 = 70% - Dot 1
                 pay = Round(Me.TongThanhTien * 0.7, 0) - m_ManualDot1
                 If pay < 0 Then pay = 0
 
-            ElseIf i = 2 And Not isDot1Empty And isDot2Empty Then
-                ' TH2: Dot 1 = 25%, Dot 2 trong ? nhap tay Dot 2 (AD)
+            ElseIf i = 2 And isDot1_25pct And isDot2Empty Then
                 pay = m_ManualDot2
 
-            ElseIf i = 3 And Not isDot1Empty And isDot2Empty Then
-                ' Dot 3 = 70% - (Dot1 + Dot2)
-                Dim tong12 As Currency
-                tong12 = Me.TongThanhTien * pctDot1 + m_ManualDot2
-                pay = Round(Me.TongThanhTien * 0.7, 0) - tong12
+            ElseIf i = 3 And isDot1_25pct And isDot2Empty Then
+                pay = Round(Me.TongThanhTien * 0.7, 0) - _
+                      Round(Me.TongThanhTien * 0.25, 0) - m_ManualDot2
                 If pay < 0 Then pay = 0
 
-            ElseIf i = lastPeriod Then
-                ' Dot cuoi ? tinh phan con lai
-                pay = Me.TongThanhTien - totalPaid
-
             Else
-                ' Cac dot binh thuong co % tren sheet
                 If IsNumeric(pct_raw) Then
                     pay = Round(Me.TongThanhTien * CDbl(pct_raw), 0)
                 Else
@@ -238,10 +223,8 @@ Private Sub BuildPaymentSchedule(ByVal scheduleRow As Long, ByVal lastPeriod As 
             End If
 
         Else
-            ' Neu KHONG phai HÐMB ? tinh nhu binh thuong
-            If i = lastPeriod Then
-                pay = Me.TongThanhTien - totalPaid
-            ElseIf IsNumeric(pct_raw) Then
+            ' Truong hop binh thuong
+            If IsNumeric(pct_raw) Then
                 pay = Round(Me.TongThanhTien * CDbl(pct_raw), 0)
             Else
                 pay = 0
@@ -249,9 +232,9 @@ Private Sub BuildPaymentSchedule(ByVal scheduleRow As Long, ByVal lastPeriod As 
         End If
 
         totalPaid = totalPaid + pay
+        m_TienDoThanhToan(i, 1) = pay ' So tien
 
-        ' === GHI VAO MANG ===
-        m_TienDoThanhToan(i, 1) = pay
+        ' Ngay thanh toan
         If i = 1 Then
             m_TienDoThanhToan(i, 2) = currentDate
         ElseIf IsNumeric(days_raw) And Len(CStr(days_raw)) > 0 Then
@@ -261,7 +244,14 @@ Private Sub BuildPaymentSchedule(ByVal scheduleRow As Long, ByVal lastPeriod As 
             m_TienDoThanhToan(i, 2) = ""
         End If
 
-        m_TienDoThanhToan(i, 3) = pct_raw
+        ' % tinh duoc
+        If Me.TongThanhTien > 0 Then
+            m_TienDoThanhToan(i, 3) = Round(pay / Me.TongThanhTien, 6)
+        Else
+            m_TienDoThanhToan(i, 3) = 0
+        End If
+
+        ' Ngay cong (de tooltip)
         m_TienDoThanhToan(i, 4) = days_raw
     Next i
 End Sub
