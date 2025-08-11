@@ -340,65 +340,53 @@ End Function
 Private Sub WriteValidationTooltips(ByVal nhaTret As clsNhaTret, ByVal ws As Worksheet, ByVal conf As Object)
     Dim r As Long: r = nhaTret.RowNum
     Dim scheduleArray As Variant: scheduleArray = nhaTret.TienDoThanhToan
+    Dim tongTien As Currency: tongTien = nhaTret.GiaTriGocDeTinhTienDo
 
-    ' Lay thong tin cot moc tu config
-    Dim colNgayStart As Long
-    colNgayStart = ws.Range(conf("colNgayTT1") & 1).Column ' Cot bat dau ngay TT (AA)
-    
-    '========================================================================
-    ' YEU CAU MOI: Chi xoa cac tooltip trong pham vi 15 dot (tu AB den BD)
-    '========================================================================
-    Dim startClearCol As Long
-    Dim periodsToClear As Integer
-    Dim i As Integer, c As Long
-    
-    ' Bat dau xoa tu cot tien dot 1 (AB)
-    startClearCol = ws.Range(conf("colStartTienTT") & 1).Column
-    periodsToClear = MAX_PAYMENT_PERIODS
-    
-    ' Vong lap nay se xoa chinh xac cac cot tu AB den BD
-    ' (1 cot cho Dot 1 + 14 dot * 2 cot/dot = 29 cot)
-    For i = 0 To (periodsToClear - 1) * 2
-        c = startClearCol + i
-        ws.Cells(r, c).Validation.Delete
+    Dim colNgayStart As Long: colNgayStart = ws.Range(conf("colNgayTT1") & 1).Column ' Cot AA
+    Dim colTienStart As Long: colTienStart = ws.Range(conf("colStartTienTT") & 1).Column ' Cot AB
+
+    ' ==== XOA VALIDATION CU ====
+    Dim i As Integer
+    For i = 0 To (MAX_PAYMENT_PERIODS - 1) * 2
+        On Error Resume Next
+        ws.Cells(r, colTienStart + i).Validation.Delete
+        On Error GoTo 0
     Next i
-    '========================================================================
 
-    ' Neu khong co lich thanh toan thi dung lai
     If Not IsArray(scheduleArray) Then Exit Sub
-
     Dim ub As Long
-    On Error Resume Next
-    ub = UBound(scheduleArray, 1)
-    If Err.Number <> 0 Then Exit Sub ' Mang rong hoac khong hop le
-    On Error GoTo 0
-    
-    ' Phan ghi tooltip moi van giu nguyen logic cu
-    For i = 1 To ub
-        Dim pct_raw As Variant: pct_raw = scheduleArray(i, 3)
-        Dim days_raw As Variant: days_raw = scheduleArray(i, 4)
+    On Error Resume Next: ub = UBound(scheduleArray, 1): On Error GoTo 0
+    If ub = 0 Then Exit Sub
 
-        ' Ghi Tooltip cho cot TIEN chi khi co %
-        If IsNumeric(pct_raw) And Len(CStr(pct_raw)) > 0 Then
-            With ws.Cells(r, colNgayStart + (i - 1) * 2 + 1).Validation
+    ' ==== GHI TOOLTIP ====
+    For i = 1 To ub
+        Dim soTien As Variant, ngay As Variant, pct_raw As Variant, days_raw As Variant
+        soTien = scheduleArray(i, 1)
+        ngay = scheduleArray(i, 2)
+        pct_raw = scheduleArray(i, 3)
+        days_raw = scheduleArray(i, 4)
+
+        ' -- TIEN: Tooltip phan tram --
+        Dim tooltipPct As String
+        If IsNumeric(pct_raw) And CDbl(pct_raw) > 0 Then
+            tooltipPct = Format(CDbl(pct_raw) * 100, "0.##") & "%"
+        ElseIf IsNumeric(soTien) And tongTien > 0 Then
+            tooltipPct = Format(soTien / tongTien * 100, "0.##") & "% (*) nhap tay"
+        End If
+        If Len(tooltipPct) > 0 Then
+            With ws.Cells(r, colTienStart + (i - 1) * 2).Validation
                 .Add Type:=xlValidateInputOnly
-                .InputMessage = Round(CDbl(pct_raw) * 100, 2) & "%"
+                .InputMessage = tooltipPct
             End With
         End If
 
-        ' Ghi Tooltip cho cot NGAY chi khi co so ngay
-        If IsNumeric(days_raw) And Len(CStr(days_raw)) > 0 Then
-             If i > 1 Then
-                With ws.Cells(r, colNgayStart + (i - 1) * 2).Validation
-                    .Add Type:=xlValidateInputOnly
-                    .InputMessage = days_raw & " ngay"
-                End With
-             End If
+        ' -- NGAY: Tooltip so ngay (tu dot 2 tro di) --
+        If i > 1 And IsNumeric(days_raw) And days_raw <> "" Then
+            With ws.Cells(r, colNgayStart + (i - 1) * 2).Validation
+                .Add Type:=xlValidateInputOnly
+                .InputMessage = "+" & days_raw & " ngay"
+            End With
         End If
     Next i
 End Sub
-
-
-
-
 
