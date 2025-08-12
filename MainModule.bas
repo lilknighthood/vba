@@ -4,15 +4,6 @@ Private Const SHEET_DATA = "FILE TONG HOA PHU - K HOME"
 Private Const SHEET_TIENDO = "TIEN_DO_TT"
 Private Const MAX_PAYMENT_PERIODS As Integer = 15
 
-'==== LÀM TRÒN 0 CH? S? – AWAY FROM ZERO (gi?ng Excel.ROUND) ====
-Public Function Round0(ByVal x As Double) As Currency
-    If x >= 0 Then
-        Round0 = CCur(Int(x + 0.5))
-    Else
-        Round0 = CCur(-Int(-x + 0.5))
-    End If
-End Function
-
 Sub TinhToanTongHop_NhaTret_Final()
     Dim wsData As Worksheet, wsTienDo As Worksheet
     Dim r As Range, rowIndex As Long
@@ -206,7 +197,7 @@ Private Sub WriteResultsToSheet(ByVal nhaTret As clsNhaTret, ByVal ws As Workshe
         ' ===== %_TIEN_COC =====
         If Not nhaTret.IsHDMBContract Then
             Dim tienCocVal As Currency
-            tienCocVal = Round0(nhaTret.TongThanhTien * nhaTret.totalPct) ' dùng Round0 d?ng b?
+            tienCocVal = VBA.Round(nhaTret.TongThanhTien * nhaTret.totalPct, 0) ' lam tron 0 so le
             .Range(conf("colCoc_NonHDMB_Output") & r).value = tienCocVal
 
             If tienCocVal > 0 Then
@@ -342,10 +333,9 @@ End Function
 '         HÀM MSGBOX H? TR? UNICODE (DÙNG WINDOWS API)
 '========================================================================
 Public Function MsgBoxUni(ByVal prompt As String, Optional ByVal buttons As VbMsgBoxStyle = vbOKOnly, Optional ByVal title As String = "") As VbMsgBoxResult
-    ' phiên b?n dùng MessageBoxW dã có s?n trong project c?a b?n
+    ' Phiên b?n này dùng Windows API d? hi?n th? chính xác ký t? ti?ng Vi?t Unicode
     MsgBoxUni = MessageBoxW(0, StrPtr(prompt), StrPtr(title), buttons)
 End Function
-
 '----------------- WRITE VALIDATION TOOLTIPS (v3) -----------------
 Private Sub WriteValidationTooltips(ByVal nhaTret As clsNhaTret, ByVal ws As Worksheet, ByVal conf As Object)
     Dim r As Long: r = nhaTret.RowNum
@@ -399,5 +389,3 @@ Private Sub WriteValidationTooltips(ByVal nhaTret As clsNhaTret, ByVal ws As Wor
         End If
     Next i
 End Sub
-
-
