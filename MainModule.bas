@@ -4,6 +4,15 @@ Private Const SHEET_DATA = "FILE TONG HOA PHU - K HOME"
 Private Const SHEET_TIENDO = "TIEN_DO_TT"
 Private Const MAX_PAYMENT_PERIODS As Integer = 15
 
+'==== LÀM TRÒN 0 CH? S? – AWAY FROM ZERO (gi?ng Excel.ROUND) ====
+Public Function Round0(ByVal x As Double) As Currency
+    If x >= 0 Then
+        Round0 = CCur(Int(x + 0.5))
+    Else
+        Round0 = CCur(-Int(-x + 0.5))
+    End If
+End Function
+
 Sub TinhToanTongHop_NhaTret_Final()
     Dim wsData As Worksheet, wsTienDo As Worksheet
     Dim r As Range, rowIndex As Long
@@ -11,7 +20,7 @@ Sub TinhToanTongHop_NhaTret_Final()
     Dim skippedRows As String, processedCount As Long
     skippedRows = "": processedCount = 0
 
-    ' Khoi tao worksheet va config
+    ' Kh?i t?o worksheet và config
     On Error GoTo InitializeError
     Set wsData = ThisWorkbook.Sheets(SHEET_DATA)
     Set wsTienDo = ThisWorkbook.Sheets(SHEET_TIENDO)
@@ -23,11 +32,11 @@ Sub TinhToanTongHop_NhaTret_Final()
     Application.Calculation = xlCalculationManual
     On Error GoTo ProcessError
 
-    ' Xac dinh vung duoc chon hop le
+    ' Vùng du?c ch?n h?p l?
     Dim selectedRange As Range
     Set selectedRange = Intersect(Selection, wsData.UsedRange)
 
-    ' Vong lap qua tung dong
+    ' Vòng l?p t?ng dòng
     For Each r In selectedRange.Rows
         If Not r.EntireRow.Hidden Then
             rowIndex = r.row
@@ -41,30 +50,32 @@ Sub TinhToanTongHop_NhaTret_Final()
             Set nhaTret = New clsNhaTret
             LoadNhaTretData nhaTret, wsData, config, rowIndex
 
-            ' Tinh tong % tien do
+            ' Tính t?ng % trong TIEN_DO_TT (t?ng các % c?t E,G,I,...)
             Dim totalPct As Double
             totalPct = SumSchedulePercentages(wsTienDo, nhaTret.TenTienDo)
             nhaTret.XacDinhGiaTriGoc totalPct
 
-            ' Doc tien DOT 1 thu cong (cot AB)
+            ' Ð?c Ð?T 1 (AB) & Ð?T 2 (AD) th? công
             Dim manualDot1 As Currency
             manualDot1 = wsData.Range(config("colStartTienTT") & rowIndex).value
-            If IsNumeric(manualDot1) Then
-                nhaTret.SetManualDot1Value manualDot1
-            Else
-                nhaTret.SetManualDot1Value 0
-            End If
+            If Not IsNumeric(manualDot1) Then manualDot1 = 0
+            nhaTret.SetManualDot1Value manualDot1
 
-            ' Doc tien DOT 2 thu cong (cot AD)
             Dim manualDot2 As Currency
             manualDot2 = wsData.Range(config("colTienDot2_ThuCong") & rowIndex).value
-            If IsNumeric(manualDot2) Then
-                nhaTret.SetManualDot2Value manualDot2
-            Else
-                nhaTret.SetManualDot2Value 0
+            If Not IsNumeric(manualDot2) Then manualDot2 = 0
+            nhaTret.SetManualDot2Value manualDot2
+
+            ' N?u c?t T (Data) dã có s? TI?N C?C thì dùng làm override
+            If config.Exists("colPctTienCoc_Data") And Len(config("colPctTienCoc_Data")) > 0 Then
+                Dim cocOverride As Variant
+                cocOverride = wsData.Range(config("colPctTienCoc_Data") & rowIndex).value
+                If IsNumeric(cocOverride) And cocOverride > 0 Then
+                    nhaTret.TienCoc_Override = Round0(CDbl(cocOverride))
+                End If
             End If
 
-            ' Tinh tien do, tao hop dong, ghi ket qua
+            ' Tính l?ch, t?o s? HÐ, ghi
             nhaTret.TinhTienDoThanhToan
             nhaTret.TaoSoHopDong
             WriteResultsToSheet nhaTret, wsData, config
@@ -82,14 +93,13 @@ CleanUp:
     Exit Sub
 
 InitializeError:
-    MsgBox "Loi khoi tao: " & Err.Description, vbCritical, "Loi He Thong"
+    MsgBox "L?i kh?i t?o: " & Err.Description, vbCritical, "L?i H? th?ng"
     GoTo CleanUp
 
 ProcessError:
-    skippedRows = skippedRows & "Dong " & rowIndex & ": Loi xu ly - " & Err.Description & vbCrLf
+    skippedRows = skippedRows & "Dòng " & rowIndex & ": L?i x? lý - " & Err.Description & vbCrLf
     Resume Next
 End Sub
-
 
 '----------------- CONFIG -----------------
 Private Function ReadConfig(ByVal setupSheetName As String) As Object
@@ -102,13 +112,13 @@ Private Function ReadConfig(ByVal setupSheetName As String) As Object
         .Add "colThanhTienDat_Input", Trim(ws.Range("B1").value)   ' Q
         .Add "colThanhTienNha_Input", Trim(ws.Range("B2").value)   ' R
         .Add "colThanhTien", Trim(ws.Range("B3").value)            ' S
-        .Add "colTenTienDo", Trim(ws.Range("B4").value)            ' T
+        .Add "colTenTienDo", Trim(ws.Range("B4").value)            ' W
         .Add "colStartTienTT", Trim(ws.Range("B5").value)          ' AB
         .Add "colNgayTT1", Trim(ws.Range("B6").value)              ' AA
         .Add "colBC_ThanhTien", Trim(ws.Range("B7").value)         ' BE
-        .Add "colBC_TienCoc", Trim(ws.Range("B8").value)           ' BF
-        .Add "colStartBC", Trim(ws.Range("B9").value)              ' BG (BC_Dat_1)
-        .Add "colCoc_NonHDMB_Output", Trim(ws.Range("B10").value)  ' F
+        .Add "colBC_TienCoc", Trim(ws.Range("B8").value)           ' BF (B?ng ch? S? TI?N Ð?T C?C)
+        .Add "colStartBC", Trim(ws.Range("B9").value)              ' BG (BC_Ð?t_1)
+        .Add "colPctTienCoc_Data", Trim(ws.Range("B10").value)     ' T  (gi? là S? TI?N C?C)
         .Add "colLoO", Trim(ws.Range("B11").value)                 ' F
         .Add "colNgayKy", Trim(ws.Range("B12").value)              ' H
         .Add "colSoHD", Trim(ws.Range("B13").value)                ' I
@@ -117,10 +127,11 @@ Private Function ReadConfig(ByVal setupSheetName As String) As Object
         .Add "colBC_ThanhTien_Dat", Trim(ws.Range("B16").value)    ' BV
         .Add "colBC_ThanhTien_Nha", Trim(ws.Range("B17").value)    ' BW
         .Add "colTienDot2_ThuCong", Trim(ws.Range("B18").value)    ' AD
+        .Add "colLoaiHopDong", Trim(ws.Range("B19").value)         ' G (NOXH/NOTM)
     End With
     Exit Function
 ErrorHandler:
-    MsgBox "Loi doc cau hinh tu sheet '" & setupSheetName & "': " & Err.Description, vbCritical
+    MsgBox "L?i d?c c?u hình sheet '" & setupSheetName & "': " & Err.Description, vbCritical
     Set ReadConfig = Nothing
 End Function
 
@@ -135,12 +146,24 @@ Private Sub LoadNhaTretData(ByVal nhaTret As clsNhaTret, ByVal ws As Worksheet, 
         .NgayTTDot1 = ws.Range(conf("colNgayTT1") & r).value
         .ThanhTienDat_Input = ws.Range(conf("colThanhTienDat_Input") & r).value
         .ThanhTienNha_Input = ws.Range(conf("colThanhTienNha_Input") & r).value
+        If conf.Exists("colLoaiHopDong") And Len(conf("colLoaiHopDong")) > 0 Then
+            On Error Resume Next
+            .LoaiHopDong = Trim$(CStr(ws.Range(conf("colLoaiHopDong") & r).value)) ' NOXH/NOTM
+            On Error GoTo 0
+        End If
+
+        ' Ð?c s?n ti?n c?c override (n?u ngu?i dùng dã nh?p)
+        If conf.Exists("colPctTienCoc_Data") And Len(conf("colPctTienCoc_Data")) > 0 Then
+            Dim cocVal As Variant
+            cocVal = ws.Range(conf("colPctTienCoc_Data") & r).value
+            If IsNumeric(cocVal) And cocVal > 0 Then .TienCoc_Override = Round0(CDbl(cocVal))
+        End If
     End With
 End Sub
 
 '----------------- SUM TOTAL PCT -----------------
 Private Function SumSchedulePercentages(ByVal wsTienDo As Worksheet, ByVal scheduleName As String) As Double
-    ' Tra ve tong % o dang thap phan (0.3 = 30%)
+    ' Tr? v? t?ng % ? d?ng th?p phân (0.3 = 30%)
     Dim total As Double: total = 0
     If Len(Trim(scheduleName)) = 0 Then Exit Function
     Dim r As Long, i As Integer, lastRow As Long
@@ -161,24 +184,24 @@ End Function
 Private Sub WriteResultsToSheet(ByVal nhaTret As clsNhaTret, ByVal ws As Worksheet, ByVal conf As Object)
     Dim r As Long: r = nhaTret.RowNum
     With ws
-        ' So HD
+        ' S? HÐ
         .Range(conf("colSoHD") & r).value = nhaTret.SoHopDong
-        ' GHI VÀO C?T THÀNH_TI?N (S)
+        ' Ghi l?i THÀNH_TI?N
         .Range(conf("colThanhTien") & r).value = nhaTret.TongThanhTien
 
-        ' Cot moc
+        ' C?t m?c
         Dim colTien As Long, colNgay As Long, colBC As Long
         colTien = .Range(conf("colStartTienTT") & 1).Column
         colNgay = .Range(conf("colNgayTT1") & 1).Column
         colBC = .Range(conf("colStartBC") & 1).Column
 
-        ' Cac cot "bang chu" can BO QUA khi clear
+        ' Các c?t "b?ng ch?" c?n B? QUA khi clear
         Dim bcThanhTienCol As Long, bcThanhTienDatCol As Long, bcThanhTienNhaCol As Long
         bcThanhTienCol = .Range(conf("colBC_ThanhTien") & 1).Column      ' BE
         bcThanhTienDatCol = .Range(conf("colBC_ThanhTien_Dat") & 1).Column ' BV
         bcThanhTienNhaCol = .Range(conf("colBC_ThanhTien_Nha") & 1).Column ' BW
 
-        ' CLEAR (bo qua BE/BV/BW)
+        ' CLEAR (b? qua BE/BV/BW)
         Dim i As Integer, tgtCol As Long
         For i = 1 To MAX_PAYMENT_PERIODS
             .Cells(r, colTien + (i - 1) * 2).ClearContents
@@ -191,26 +214,37 @@ Private Sub WriteResultsToSheet(ByVal nhaTret As clsNhaTret, ByVal ws As Workshe
             End If
         Next i
 
-        ' Ti le dot 1
+        ' T? l? d?t 1 (ghi d? tham kh?o)
         .Range(conf("colTiLeTT_Dot1_Output") & r).value = nhaTret.TiLeThanhToanDot1
 
-        ' ===== %_TIEN_COC =====
+        ' ===== TI?N C?C (c?t T) + B?ng ch? t?i BF =====
         If Not nhaTret.IsHDMBContract Then
-            Dim tienCocVal As Currency
-            tienCocVal = VBA.Round(nhaTret.TongThanhTien * nhaTret.totalPct, 0) ' lam tron 0 so le
-            .Range(conf("colCoc_NonHDMB_Output") & r).value = tienCocVal
+            Dim tienCoc As Currency
+            tienCoc = nhaTret.DepositTargetAmount() ' = override n?u có, ngu?c l?i = Round0(S * t?ng %)
 
-            If tienCocVal > 0 Then
-                .Range(conf("colBC_TienCoc") & r).value = vnd(tienCocVal) ' bang chu coc
+            ' Ghi TI?N C?C v? c?t T (d?nh d?ng s?)
+            If conf.Exists("colPctTienCoc_Data") And Len(conf("colPctTienCoc_Data")) > 0 Then
+                With .Range(conf("colPctTienCoc_Data") & r)
+                    .value = tienCoc
+                    On Error Resume Next
+                    .NumberFormat = "#,##0"
+                    On Error GoTo 0
+                End With
+            End If
+
+            ' Ghi "b?ng ch?" ? BF
+            If tienCoc > 0 Then
+                .Range(conf("colBC_TienCoc") & r).value = vnd(tienCoc)
             Else
                 .Range(conf("colBC_TienCoc") & r).ClearContents
             End If
         Else
-            .Range(conf("colCoc_NonHDMB_Output") & r).ClearContents
+            ' HÐMB: xoá T + BF
+            If conf.Exists("colPctTienCoc_Data") Then .Range(conf("colPctTienCoc_Data") & r).ClearContents
             .Range(conf("colBC_TienCoc") & r).ClearContents
         End If
 
-        ' Lich thanh toan + BC_Dat_i
+        ' L?ch thanh toán + BC_Ð?t_i
         Dim scheduleArray As Variant
         scheduleArray = nhaTret.TienDoThanhToan
 
@@ -228,7 +262,7 @@ Private Sub WriteResultsToSheet(ByVal nhaTret As clsNhaTret, ByVal ws As Workshe
                     If tgtCol <> bcThanhTienCol _
                        And tgtCol <> bcThanhTienDatCol _
                        And tgtCol <> bcThanhTienNhaCol Then
-                        .Cells(r, tgtCol).value = vnd(soTien) ' bang chu dat
+                        .Cells(r, tgtCol).value = vnd(soTien) ' b?ng ch? t?ng d?t
                     End If
                     If IsDate(scheduleArray(i, 2)) Then
                         .Cells(r, colNgay + (i - 1) * 2).value = CDate(scheduleArray(i, 2))
@@ -238,27 +272,26 @@ Private Sub WriteResultsToSheet(ByVal nhaTret As clsNhaTret, ByVal ws As Workshe
             End If
         End If
 
-        ' KIEM_TRA (B15)
+        ' KI?M_TRA (U)
         Dim colKiemTra As Long
         colKiemTra = .Range(conf("colKiemTra") & 1).Column
         .Cells(r, colKiemTra).value = sumKiemTra
-        ' muon bang chu: .Cells(r, colKiemTra).Value = vnd(sumKiemTra)
 
-        ' BC_THANH_TIEN (BE) – ghi CUOI
+        ' BC_THÀNH_TI?N (BE)
         If IsNumeric(nhaTret.TongThanhTien) And nhaTret.TongThanhTien > 0 Then
             .Range(conf("colBC_ThanhTien") & r).value = vnd(nhaTret.TongThanhTien)
         Else
             .Range(conf("colBC_ThanhTien") & r).ClearContents
         End If
 
-        ' BC_THANH_TIEN_DAT (BV) – bang chu
+        ' BC_THÀNH_TI?N_Ð?T (BV)
         If IsNumeric(nhaTret.ThanhTienDat_Input) And nhaTret.ThanhTienDat_Input > 0 Then
             .Cells(r, bcThanhTienDatCol).value = vnd(nhaTret.ThanhTienDat_Input)
         Else
             .Cells(r, bcThanhTienDatCol).ClearContents
         End If
 
-        ' BC_THANH_TIEN_NHA (BW) – bang chu
+        ' BC_THÀNH_TI?N_NHÀ (BW)
         If IsNumeric(nhaTret.ThanhTienNha_Input) And nhaTret.ThanhTienNha_Input > 0 Then
             .Cells(r, bcThanhTienNhaCol).value = vnd(nhaTret.ThanhTienNha_Input)
         Else
@@ -269,18 +302,13 @@ End Sub
 
 '----------------- UI SUMMARY -----------------
 Private Sub ShowSummaryMsg(ByVal processedCount As Long, ByVal skippedRows As String)
-    ' Chi hien thong bao neu co dong bi bo qua (loi)
     If Len(skippedRows) = 0 Then Exit Sub
-    
     Dim finalMsg As String
     finalMsg = SZ("C19") & vbCrLf & vbCrLf _
              & SZ("C20") & " " & CStr(processedCount) & vbCrLf & vbCrLf _
              & SZ("C21") & vbCrLf & skippedRows
-    
-    ' Doi sang vbExclamation de ro la canh bao/loi
     MsgBoxUni finalMsg, vbExclamation, SZ("C18")
 End Sub
-
 
 Private Function ValidateInputs(ByVal ws As Worksheet, ByVal conf As Object, ByVal r As Long, _
                                 ByRef errMsg As String, _
@@ -292,60 +320,41 @@ Private Function ValidateInputs(ByVal ws As Worksheet, ByVal conf As Object, ByV
     Dim vTienDo As String:    vTienDo = Trim$(CStr(ws.Range(conf("colTenTienDo") & r).value))
     Dim vNgayDot1 As Variant: vNgayDot1 = ws.Range(conf("colNgayTT1") & r).value
 
-    If Not IsDate(vNgayKy) Then
-        problems = problems & Bullet() & SZ("C6") & vbCrLf
-        ok = False
-    End If
-    If Len(vTienDo) = 0 Then
-        problems = problems & Bullet() & SZ("C4") & vbCrLf
-        ok = False
-    End If
-    If Not IsDate(vNgayDot1) Then
-        problems = problems & Bullet() & SZ("C12") & vbCrLf
-        ok = False
-    End If
+    If Not IsDate(vNgayKy) Then problems = problems & Bullet() & SZ("C6") & vbCrLf: ok = False
+    If Len(vTienDo) = 0 Then problems = problems & Bullet() & SZ("C4") & vbCrLf: ok = False
+    If Not IsDate(vNgayDot1) Then problems = problems & Bullet() & SZ("C12") & vbCrLf: ok = False
 
     ValidateInputs = ok
     If Not ok Then
         errMsg = SZ("C17") & " " & r & ":" & vbCrLf & problems
-        If showPopupPerRow Then
-            MsgBoxUni errMsg, vbExclamation, SZ("C1")
-        End If
+        If showPopupPerRow Then MsgBoxUni errMsg, vbExclamation, SZ("C1")
     Else
         errMsg = ""
     End If
 End Function
 
-' TONG KET CUOI CUNG — 1 POPUP Duy NHAT, TOAN BO LOI
-'========================================================================
-'         HAM DOC VAN BAN TU SHEET SETUP
-'========================================================================
 ' Bullet Unicode (•)
 Private Function Bullet() As String
     Bullet = ChrW(8226) & " "
 End Function
 
 Public Function SZ(ByVal addr As String) As String
-    SZ = ThisWorkbook.Sheets("Setup").Range(addr).Value2  ' doc Unicode tu o
+    SZ = ThisWorkbook.Sheets("Setup").Range(addr).Value2
 End Function
 
-'========================================================================
-'         HÀM MSGBOX H? TR? UNICODE (DÙNG WINDOWS API)
-'========================================================================
 Public Function MsgBoxUni(ByVal prompt As String, Optional ByVal buttons As VbMsgBoxStyle = vbOKOnly, Optional ByVal title As String = "") As VbMsgBoxResult
-    ' Phiên b?n này dùng Windows API d? hi?n th? chính xác ký t? ti?ng Vi?t Unicode
     MsgBoxUni = MessageBoxW(0, StrPtr(prompt), StrPtr(title), buttons)
 End Function
-'----------------- WRITE VALIDATION TOOLTIPS (v3) -----------------
+
+'----------------- Validation tooltips -----------------
 Private Sub WriteValidationTooltips(ByVal nhaTret As clsNhaTret, ByVal ws As Worksheet, ByVal conf As Object)
     Dim r As Long: r = nhaTret.RowNum
     Dim scheduleArray As Variant: scheduleArray = nhaTret.TienDoThanhToan
     Dim tongTien As Currency: tongTien = nhaTret.GiaTriGocDeTinhTienDo
 
-    Dim colNgayStart As Long: colNgayStart = ws.Range(conf("colNgayTT1") & 1).Column ' Cot AA
-    Dim colTienStart As Long: colTienStart = ws.Range(conf("colStartTienTT") & 1).Column ' Cot AB
+    Dim colNgayStart As Long: colNgayStart = ws.Range(conf("colNgayTT1") & 1).Column ' AA
+    Dim colTienStart As Long: colTienStart = ws.Range(conf("colStartTienTT") & 1).Column ' AB
 
-    ' ==== XOA VALIDATION CU ====
     Dim i As Integer
     For i = 0 To (MAX_PAYMENT_PERIODS - 1) * 2
         On Error Resume Next
@@ -358,7 +367,6 @@ Private Sub WriteValidationTooltips(ByVal nhaTret As clsNhaTret, ByVal ws As Wor
     On Error Resume Next: ub = UBound(scheduleArray, 1): On Error GoTo 0
     If ub = 0 Then Exit Sub
 
-    ' ==== GHI TOOLTIP ====
     For i = 1 To ub
         Dim soTien As Variant, ngay As Variant, pct_raw As Variant, days_raw As Variant
         soTien = scheduleArray(i, 1)
@@ -366,12 +374,11 @@ Private Sub WriteValidationTooltips(ByVal nhaTret As clsNhaTret, ByVal ws As Wor
         pct_raw = scheduleArray(i, 3)
         days_raw = scheduleArray(i, 4)
 
-        ' -- TIEN: Tooltip phan tram --
         Dim tooltipPct As String
         If IsNumeric(pct_raw) And CDbl(pct_raw) > 0 Then
             tooltipPct = Format(CDbl(pct_raw) * 100, "0.##") & "%"
         ElseIf IsNumeric(soTien) And tongTien > 0 Then
-            tooltipPct = Format(soTien / tongTien * 100, "0.##") & "% (*) nhap tay"
+            tooltipPct = Format(soTien / tongTien * 100, "0.##") & "% (*) nh?p tay"
         End If
         If Len(tooltipPct) > 0 Then
             With ws.Cells(r, colTienStart + (i - 1) * 2).Validation
@@ -380,12 +387,13 @@ Private Sub WriteValidationTooltips(ByVal nhaTret As clsNhaTret, ByVal ws As Wor
             End With
         End If
 
-        ' -- NGAY: Tooltip so ngay (tu dot 2 tro di) --
         If i > 1 And IsNumeric(days_raw) And days_raw <> "" Then
             With ws.Cells(r, colNgayStart + (i - 1) * 2).Validation
                 .Add Type:=xlValidateInputOnly
-                .InputMessage = "+" & days_raw & " ngay"
+                .InputMessage = "+" & days_raw & " ngày"
             End With
         End If
     Next i
 End Sub
+
+
