@@ -28,10 +28,6 @@ Private m_wsSetup As Worksheet
 Private m_wsTienDo As Worksheet
 Private m_totalPct As Double   ' Tong % tien do (dang thap phan, vi du 0.3 = 30%)
 
-' dùng Round0 ? MainModule
-Private Function R0(ByVal x As Double) As Currency
-    R0 = Round0(x)
-End Function
 
 '========================================================================
 '                       KHOI TAO CLASS
@@ -58,6 +54,7 @@ Public Property Get IsHDMBContract() As Boolean
     IsHDMBContract = (InStr(1, nm, "HDMB") > 0) Or (InStr(1, nm, "H" & ChrW(272) & "MB") > 0)
 End Property
 
+
 Public Property Get totalPct() As Double
     totalPct = m_totalPct
 End Property
@@ -65,6 +62,7 @@ End Property
 Public Property Let totalPct(ByVal value As Double)
     m_totalPct = value
 End Property
+
 
 '========================================================================
 '                       PHUONG THUC CHINH
@@ -82,6 +80,7 @@ Public Sub XacDinhGiaTriGoc(ByVal totalPercent As Double)
     ' Luu lai tong %
     Me.totalPct = totalPercent
 End Sub
+
 
 Public Sub TaoSoHopDong()
     If Len(Trim(Me.MaSoLo)) = 0 Or Not IsDate(Me.NgayKy) Or Len(Trim(Me.TenTienDo)) = 0 Then Exit Sub
@@ -108,15 +107,18 @@ End Sub
 
 ' THEM HAM MOI - Thiet lap gia tri Dot 1 tu sheet data
 Public Sub SetManualDot1Value(ByVal manualDot1 As Currency)
+    ' Ham nay se duoc goi tu MainModule de truyen gia tri Dot 1 thu cong
     m_ManualDot1 = manualDot1
 End Sub
 Public Sub SetManualDot2Value(ByVal manualDot2 As Currency)
     m_ManualDot2 = manualDot2
 End Sub
 
+
 '========================================================================
 '                       HAM HO TRO (PRIVATE)
 '========================================================================
+
 Private Function GetContractTemplate(ByVal lookupValue As String) As String
     Dim rng As Range, defTpl As String, tpl As String, i As Long
     Dim key As String
@@ -127,13 +129,19 @@ Private Function GetContractTemplate(ByVal lookupValue As String) As String
     
     If rng Is Nothing Or rng.Rows.Count < 1 Then Exit Function
     
+    ' Lay mau mac dinh
     defTpl = rng.Cells(rng.Rows.Count, 2).value
     tpl = defTpl
     
+    ' Chuyen gia tri sang chu Hoa
     lookupValue = UCase$(lookupValue)
     
+    ' Vong lap tim mau Hop Dong
     For i = 1 To rng.Rows.Count - 1
         key = Trim$(UCase$(rng.Cells(i, 1).value))
+        
+        ' Neu key khong rong va Ten Tien Do Co CHUA Key
+        ' thi lay mau tuong ung va thoat
         If Len(key) > 0 And (lookupValue Like "*" & key & "*") Then
             tpl = rng.Cells(i, 2).value
             Exit For
@@ -167,7 +175,7 @@ Private Function FindLastPaymentPeriod(ByVal scheduleRow As Long) As Integer
 End Function
 
 Private Sub BuildPaymentSchedule(ByVal scheduleRow As Long, ByVal lastPeriod As Integer)
-    ' Mo rong mang: So tien, Ngay TT, % tinh duoc, So ngay tang
+    ' Mo rong mang len 4 cot: So tien, Ngay TT, % tinh duoc, So ngay tang
     ReDim m_TienDoThanhToan(1 To lastPeriod, 1 To 4)
 
     Dim totalPaid As Currency, currentDate As Date
@@ -175,8 +183,8 @@ Private Sub BuildPaymentSchedule(ByVal scheduleRow As Long, ByVal lastPeriod As 
     currentDate = Me.NgayTTDot1
 
     Dim pctDot1 As Variant, pctDot2 As Variant
-    pctDot1 = m_wsTienDo.Cells(scheduleRow, 5).value     ' E – Dot 1
-    pctDot2 = m_wsTienDo.Cells(scheduleRow, 7).value     ' G – Dot 2
+    pctDot1 = m_wsTienDo.Cells(scheduleRow, 5).value     ' Cot E – Dot 1
+    pctDot2 = m_wsTienDo.Cells(scheduleRow, 7).value     ' Cot G – Dot 2
 
     Dim isDot1Empty As Boolean, isDot2Empty As Boolean, isDot1_25pct As Boolean
     isDot1Empty = Not (IsNumeric(pctDot1) And Len(CStr(pctDot1)) > 0)
@@ -192,31 +200,32 @@ Private Sub BuildPaymentSchedule(ByVal scheduleRow As Long, ByVal lastPeriod As 
         ' === 3 TRUONG HOP HÐMB ===
         If Me.IsHDMBContract Then
             If i = 1 And isDot1Empty Then
-                pay = R0(m_ManualDot1)
+                pay = m_ManualDot1
 
             ElseIf i = 2 And isDot1Empty Then
-                pay = R0(Me.TongThanhTien * 0.7) - R0(m_ManualDot1)
+                pay = Round(Me.TongThanhTien * 0.7, 0) - m_ManualDot1
                 If pay < 0 Then pay = 0
 
             ElseIf i = 2 And isDot1_25pct And isDot2Empty Then
-                pay = R0(m_ManualDot2)
+                pay = m_ManualDot2
 
             ElseIf i = 3 And isDot1_25pct And isDot2Empty Then
-                pay = R0(Me.TongThanhTien * 0.7) - R0(Me.TongThanhTien * 0.25) - R0(m_ManualDot2)
+                pay = Round(Me.TongThanhTien * 0.7, 0) - _
+                      Round(Me.TongThanhTien * 0.25, 0) - m_ManualDot2
                 If pay < 0 Then pay = 0
 
             Else
                 If IsNumeric(pct_raw) Then
-                    pay = R0(Me.TongThanhTien * CDbl(pct_raw))
+                    pay = Round(Me.TongThanhTien * CDbl(pct_raw), 0)
                 Else
                     pay = 0
                 End If
             End If
 
         Else
-            ' Tien do KHONG HÐMB (tinh theo % trong sheet TIEN_DO_TT)
+            ' Truong hop binh thuong
             If IsNumeric(pct_raw) Then
-                pay = R0(Me.TongThanhTien * CDbl(pct_raw))
+                pay = Round(Me.TongThanhTien * CDbl(pct_raw), 0)
             Else
                 pay = 0
             End If
@@ -235,9 +244,9 @@ Private Sub BuildPaymentSchedule(ByVal scheduleRow As Long, ByVal lastPeriod As 
             m_TienDoThanhToan(i, 2) = ""
         End If
 
-        ' ph?n tram th?c nh?n trên GIA TRI GOC (tooltip)
-        If Me.GiaTriGocDeTinhTienDo > 0 Then
-            m_TienDoThanhToan(i, 3) = Round(pay / Me.GiaTriGocDeTinhTienDo, 6)
+        ' % tinh duoc
+        If Me.TongThanhTien > 0 Then
+            m_TienDoThanhToan(i, 3) = Round(pay / Me.TongThanhTien, 6)
         Else
             m_TienDoThanhToan(i, 3) = 0
         End If
@@ -245,46 +254,4 @@ Private Sub BuildPaymentSchedule(ByVal scheduleRow As Long, ByVal lastPeriod As 
         ' Ngay cong (de tooltip)
         m_TienDoThanhToan(i, 4) = days_raw
     Next i
-
-    ' ====== CÂN B?NG PH?N DU (d?m b?o t?ng chu?n) ======
-    Dim targetTotal As Currency
-    If Me.IsHDMBContract Then
-        targetTotal = R0(Me.TongThanhTien)                        ' = THÀNH_TI?N
-    Else
-        targetTotal = R0(Me.TongThanhTien * Me.totalPct)          ' = %_TI?N_C?C
-    End If
-
-    Dim diff As Currency
-    diff = targetTotal - totalPaid
-    If diff <> 0 Then
-        Dim j As Long, adj As Currency, canReduce As Currency
-        For j = lastPeriod To 1 Step -1
-            If m_TienDoThanhToan(j, 1) > 0 Then
-                If diff > 0 Then
-                    adj = diff
-                Else
-                    canReduce = m_TienDoThanhToan(j, 1)
-                    If canReduce + diff >= 0 Then
-                        adj = diff
-                    Else
-                        adj = -canReduce
-                    End If
-                End If
-                m_TienDoThanhToan(j, 1) = m_TienDoThanhToan(j, 1) + adj
-                diff = diff - adj
-                If diff = 0 Then Exit For
-            End If
-        Next j
-    End If
-
-    ' C?p nh?t l?i % sau cân b?ng (tooltip)
-    For i = 1 To lastPeriod
-        Dim pay2 As Currency: pay2 = m_TienDoThanhToan(i, 1)
-        If Me.GiaTriGocDeTinhTienDo > 0 Then
-            m_TienDoThanhToan(i, 3) = Round(pay2 / Me.GiaTriGocDeTinhTienDo, 6)
-        Else
-            m_TienDoThanhToan(i, 3) = 0
-        End If
-    Next i
 End Sub
-
