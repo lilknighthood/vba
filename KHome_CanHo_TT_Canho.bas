@@ -1,7 +1,7 @@
 Option Explicit
 '====================================================================================================
 ' CHUC NANG CHINH: Tinh toan tong hop cho cac dong duoc chon
-'                  *** PHIEN BAN MOI: Them dieu kien kiem tra Ngay Ky Hop Dong ***
+'                  *** PHIEN BAN MOI: Da khoi phuc chuc nang ghi so tien bang chu ***
 '====================================================================================================
 Sub TinhToanTongHop_ChoDongHienTai()
     '--- KHAI BAO ---
@@ -18,7 +18,9 @@ Sub TinhToanTongHop_ChoDongHienTai()
     '--- KHAI BAO CAU HINH ---
     Dim colGiaBan As String, colDtThongThuy As String, colTenTienDo As String, colBatDauNgayTT As String
     Dim colGiaTriCanHo As String, colGiaTriQSDD As String, colThueGTGT As String, colPhiBaoTri As String
-    Dim colNgayKy As String '*** BIEN MOI: De kiem tra Ngay Ky HD ***
+    Dim colNgayKy As String
+    '*** THEM LAI CAU HINH BANG CHU ***
+    Dim colBC_GiaBan As String, colBC_GiaTriCH As String, colBC_GiaTriQSDD As String, colBC_ThueGTGT As String, colBC_PhiBaoTri As String
 
     '--- DOC CAU HINH ---
     On Error Resume Next
@@ -35,40 +37,34 @@ Sub TinhToanTongHop_ChoDongHienTai()
         colThueGTGT = .Range("B5").Value: colPhiBaoTri = .Range("B6").Value
         colTenTienDo = .Range("B7").Value
         colBatDauNgayTT = .Range("B9").Value
-        colNgayKy = .Range("B18").Value '*** Doc them cau hinh Ngay Ky HD tu B18 ***
+        colNgayKy = .Range("B18").Value
+        '*** DOC LAI CAU HINH BANG CHU ***
+        colBC_GiaBan = .Range("B10").Value: colBC_GiaTriCH = .Range("B11").Value
+        colBC_GiaTriQSDD = .Range("B12").Value: colBC_ThueGTGT = .Range("B13").Value
+        colBC_PhiBaoTri = .Range("B14").Value
     End With
 
     '--- KHOI TAO ---
     Set wsData = ThisWorkbook.Sheets("CAN HO K-HOME")
     Application.ScreenUpdating = False
 
-    '*** VONG LAP QUA TUNG DONG VA KIEM TRA XEM DONG CO BI AN KHONG ***
     For Each row In Selection.Rows
         If row.Hidden = False Then
             activeRow = row.row
             
-            '========================================================================
-            '   *** KIEM TRA DIEU KIEN TRUOC KHI XU LY TUNG DONG ***
-            '========================================================================
+            '--- KIEM TRA DIEU KIEN ---
             If wsData.Range(colTenTienDo & activeRow).Value = "" Then
                 skippedRows = skippedRows & "Dong " & activeRow & ": Thieu Tien Do" & vbCrLf
             ElseIf Not IsDate(wsData.Range(colBatDauNgayTT & activeRow).Value) Then
                 skippedRows = skippedRows & "Dong " & activeRow & ": Thieu hoac sai Ngay TT Dot 1" & vbCrLf
-            ElseIf Not IsDate(wsData.Range(colNgayKy & activeRow).Value) Then '*** DIEU KIEN MOI ***
+            ElseIf Not IsDate(wsData.Range(colNgayKy & activeRow).Value) Then
                 skippedRows = skippedRows & "Dong " & activeRow & ": Thieu hoac sai Ngay Ky HD" & vbCrLf
             Else
                 processedCount = processedCount + 1
-                
-                '========================================================================
-                '   GOI SUB TAO SO HOP DONG
-                '========================================================================
                 Call TaoSoHopDong(activeRow)
 
-                '========================================================================
-                '   TINH TOAN CAC GIA TRI CO BAN CUA CAN HO
-                '========================================================================
-                Dim heSoDat As Double
-                Dim giaBanCanHo As Currency, dtThongThuy As Double
+                '--- TINH TOAN GIA TRI CO BAN ---
+                Dim heSoDat As Double, giaBanCanHo As Currency, dtThongThuy As Double
                 Dim giaTriQSDD As Currency, giaTriCanHo As Currency, thueGTGT As Currency, phiBaoTri As Currency
                 
                 heSoDat = 729754.9204
@@ -86,11 +82,14 @@ Sub TinhToanTongHop_ChoDongHienTai()
                         .Range(colGiaTriQSDD & activeRow).Value = giaTriQSDD
                         .Range(colThueGTGT & activeRow).Value = thueGTGT
                         .Range(colPhiBaoTri & activeRow).Value = phiBaoTri
+                        '*** GHI LAI SO TIEN BANG CHU CHO CAC GIA TRI CHINH ***
+                        .Range(colBC_GiaBan & activeRow).Value = vnd(giaBanCanHo)
+                        .Range(colBC_GiaTriCH & activeRow).Value = vnd(giaTriCanHo)
+                        .Range(colBC_GiaTriQSDD & activeRow).Value = vnd(giaTriQSDD)
+                        .Range(colBC_ThueGTGT & activeRow).Value = vnd(thueGTGT)
+                        .Range(colBC_PhiBaoTri & activeRow).Value = vnd(phiBaoTri)
                     End With
                     
-                    '========================================================================
-                    '   GOI SUB PHU DE THUC HIEN PHAN TIEN DO
-                    '========================================================================
                     Call TinhTienDoThanhToan(activeRow, giaBanCanHo, giaTriCanHo)
                 Else
                      skippedRows = skippedRows & "Dong " & activeRow & ": Loi du lieu (Gia ban hoac DTSD)" & vbCrLf
@@ -101,9 +100,6 @@ Sub TinhToanTongHop_ChoDongHienTai()
     
     Application.ScreenUpdating = True
     
-    '========================================================================
-    '   *** HIEN THI THONG BAO TONG KET (CHI HIEN THI KHI CO LOI HOAC CANH BAO) ***
-    '========================================================================
     If skippedRows <> "" Then
         Dim finalMsg As String
         finalMsg = "Da xu ly duoc " & processedCount & " dong." & vbCrLf & vbCrLf
