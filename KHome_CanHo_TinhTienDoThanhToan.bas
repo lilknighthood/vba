@@ -5,7 +5,7 @@ Option Explicit
 '====================================================================================================
 Sub TinhTienDoThanhToan(ByVal activeRow As Long, ByVal giaBanCanHo As Currency, ByVal giaTriCanHo As Currency)
     '--- KHAI BAO BIEN SO DOT THANH TOAN TOI DA ---
-    Const maxSoDotThanhToan As Integer = 30
+    Const maxSoDotThanhToan As Integer = 20
     
     '--- KHAI BAO DOI TUONG VA BIEN CAU HINH ---
     Dim wsSetup As Worksheet, wsData As Worksheet, wsTienDo As Worksheet
