@@ -110,7 +110,7 @@ Private Function ReadConfig(ByVal setupSheetName As String) As Object
 
     With ReadConfig
         .Add "colThanhTienDat_Input", Trim(ws.Range("B1").value)   ' Q
-        .Add "colThanhTienNha_Input", Trim(ws.Range("B2").value)   ' R
+        '.Add "colThanhTienNha_Input", Trim(ws.Range("B2").value)   ' R
         .Add "colThanhTien", Trim(ws.Range("B3").value)            ' S
         .Add "colTenTienDo", Trim(ws.Range("B4").value)            ' W
         .Add "colStartTienTT", Trim(ws.Range("B5").value)          ' AB
@@ -125,7 +125,7 @@ Private Function ReadConfig(ByVal setupSheetName As String) As Object
         .Add "colTiLeTT_Dot1_Output", Trim(ws.Range("B14").value)  ' V
         .Add "colKiemTra", Trim(ws.Range("B15").value)             ' U
         .Add "colBC_ThanhTien_Dat", Trim(ws.Range("B16").value)    ' BV
-        .Add "colBC_ThanhTien_Nha", Trim(ws.Range("B17").value)    ' BW
+        '.Add "colBC_ThanhTien_Nha", Trim(ws.Range("B17").value)    ' BW
         .Add "colTienDot2_ThuCong", Trim(ws.Range("B18").value)    ' AD
         .Add "colLoaiHopDong", Trim(ws.Range("B19").value)         ' G (NOXH/NOTM)
     End With
@@ -145,7 +145,7 @@ Private Sub LoadNhaTretData(ByVal nhaTret As clsNhaTret, ByVal ws As Worksheet, 
         .TenTienDo = Trim(CStr(ws.Range(conf("colTenTienDo") & r).value))
         .NgayTTDot1 = ws.Range(conf("colNgayTT1") & r).value
         .ThanhTienDat_Input = ws.Range(conf("colThanhTienDat_Input") & r).value
-        .ThanhTienNha_Input = ws.Range(conf("colThanhTienNha_Input") & r).value
+        '.ThanhTienNha_Input = ws.Range(conf("colThanhTienNha_Input") & r).value
         If conf.Exists("colLoaiHopDong") And Len(conf("colLoaiHopDong")) > 0 Then
             On Error Resume Next
             .LoaiHopDong = Trim$(CStr(ws.Range(conf("colLoaiHopDong") & r).value)) ' NOXH/NOTM
@@ -196,10 +196,10 @@ Private Sub WriteResultsToSheet(ByVal nhaTret As clsNhaTret, ByVal ws As Workshe
         colBC = .Range(conf("colStartBC") & 1).Column
 
         ' Các c?t "b?ng ch?" c?n B? QUA khi clear
-        Dim bcThanhTienCol As Long, bcThanhTienDatCol As Long, bcThanhTienNhaCol As Long
+        Dim bcThanhTienCol As Long, bcThanhTienDatCol As Long
         bcThanhTienCol = .Range(conf("colBC_ThanhTien") & 1).Column      ' BE
         bcThanhTienDatCol = .Range(conf("colBC_ThanhTien_Dat") & 1).Column ' BV
-        bcThanhTienNhaCol = .Range(conf("colBC_ThanhTien_Nha") & 1).Column ' BW
+        'bcThanhTienNhaCol = .Range(conf("colBC_ThanhTien_Nha") & 1).Column ' BW
 
         ' CLEAR (b? qua BE/BV/BW)
         Dim i As Integer, tgtCol As Long
@@ -208,8 +208,7 @@ Private Sub WriteResultsToSheet(ByVal nhaTret As clsNhaTret, ByVal ws As Workshe
             .Cells(r, colNgay + (i - 1) * 2).ClearContents
             tgtCol = colBC + i - 1
             If tgtCol <> bcThanhTienCol _
-               And tgtCol <> bcThanhTienDatCol _
-               And tgtCol <> bcThanhTienNhaCol Then
+               And tgtCol <> bcThanhTienDatCol Then
                .Cells(r, tgtCol).ClearContents
             End If
         Next i
@@ -260,8 +259,7 @@ Private Sub WriteResultsToSheet(ByVal nhaTret As clsNhaTret, ByVal ws As Workshe
                     .Cells(r, colTien + (i - 1) * 2).value = soTien
                     tgtCol = colBC + i - 1
                     If tgtCol <> bcThanhTienCol _
-                       And tgtCol <> bcThanhTienDatCol _
-                       And tgtCol <> bcThanhTienNhaCol Then
+                       And tgtCol <> bcThanhTienDatCol Then
                         .Cells(r, tgtCol).value = vnd(soTien) ' b?ng ch? t?ng d?t
                     End If
                     If IsDate(scheduleArray(i, 2)) Then
@@ -291,12 +289,12 @@ Private Sub WriteResultsToSheet(ByVal nhaTret As clsNhaTret, ByVal ws As Workshe
             .Cells(r, bcThanhTienDatCol).ClearContents
         End If
 
-        ' BC_THÀNH_TI?N_NHÀ (BW)
-        If IsNumeric(nhaTret.ThanhTienNha_Input) And nhaTret.ThanhTienNha_Input > 0 Then
-            .Cells(r, bcThanhTienNhaCol).value = vnd(nhaTret.ThanhTienNha_Input)
-        Else
-            .Cells(r, bcThanhTienNhaCol).ClearContents
-        End If
+'        ' BC_THÀNH_TI?N_NHÀ (BW)
+'        If IsNumeric(nhaTret.ThanhTienNha_Input) And nhaTret.ThanhTienNha_Input > 0 Then
+'            .Cells(r, bcThanhTienNhaCol).value = vnd(nhaTret.ThanhTienNha_Input)
+'        Else
+'            .Cells(r, bcThanhTienNhaCol).ClearContents
+'        End If
     End With
 End Sub
 
@@ -395,5 +393,7 @@ Private Sub WriteValidationTooltips(ByVal nhaTret As clsNhaTret, ByVal ws As Wor
         End If
     Next i
 End Sub
+
+
 
 
