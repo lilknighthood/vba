@@ -3,14 +3,14 @@ Private Const MAX_PAYMENT_PERIODS As Integer = 15
 Private Const SHEET_SETUP As String = "Setup"
 Private Const SHEET_TIENDO As String = "TIEN_DO_TT"
 
-'==== C?U HÌNH D?N CHÊNH ====
-' M?c d?nh toàn c?c (áp d?ng khi ti?n d? không có c?u hình riêng):
-Private Const BALANCE_PREF_GLOBAL_ADDR As String = "B20"   ' Setup!B20
-' B?ng c?u hình theo TI?N_Ð?: Setup!J:K (J = tên ti?n d?, K = quy t?c d?n)
-Private Const BALANCE_PREF_KEY_COL As String = "J"
-Private Const BALANCE_PREF_VAL_COL As String = "K"
+'==== ƯU TIÊN DỒN CHÊNH ====
+' Mặc định toàn cục: Setup!B20
+' Override theo tiến độ: Setup!J1 (từ khoá khớp mờ tên tiến độ), Setup!K1 (quy tắc dồn)
+Private Const BALANCE_PREF_GLOBAL_ADDR As String = "B20"
+Private Const BALANCE_PREF_KEY_ADDR As String = "J1"
+Private Const BALANCE_PREF_VAL_ADDR As String = "K1"
 
-'--- Ð?U VÀO ---
+'--- ĐẦU VÀO ---
 Public RowNum As Long
 Public TongThanhTien As Currency
 Public MaSoLo As String
@@ -22,10 +22,10 @@ Public ThanhTienDat_Input As Currency
 Public m_ManualDot1 As Currency
 Public m_ManualDot2 As Currency
 Public colTienDot2_ThuCong As Currency
-Public LoaiHopDong As String        ' NOXH/NOTM (t? c?t G)
-Public TienCoc_Override As Currency ' N?u Data!T dã nh?p ti?n c?c
+Public LoaiHopDong As String        ' NOXH/NOTM (Data!G)
+Public TienCoc_Override As Currency ' Nếu Data!T đã nhập tiền cọc
 
-'--- Ð?U RA ---
+'--- ĐẦU RA ---
 Public SoHopDong As String
 Public GiaTriGocDeTinhTienDo As Currency
 Public GiaTriDeGhiVaoCotCoc As Currency
@@ -37,7 +37,7 @@ Private m_wsSetup As Worksheet
 Private m_wsTienDo As Worksheet
 Private m_totalPct As Double
 
-' Round 0 ch? s? – dùng Round0 c?a MainModule
+' Round 0 chữ số – dùng Round0 của MainModule
 Private Function R0(ByVal x As Double) As Currency
     R0 = Round0(x)
 End Function
@@ -51,7 +51,7 @@ Private Sub Class_Initialize()
     Set m_wsTienDo = ThisWorkbook.Sheets(SHEET_TIENDO)
     Exit Sub
 ErrorHandler:
-    MsgBox "L?I KH?I T?O CLASS!" & vbCrLf & Err.Description, vbCritical
+    MsgBox "LỖI KHỞI TẠO CLASS!" & vbCrLf & Err.Description, vbCritical
     End
 End Sub
 
@@ -109,7 +109,7 @@ Public Sub TinhTienDoThanhToan()
     Dim rowSch As Long: rowSch = FindScheduleRow()
     If rowSch = 0 Then Exit Sub
 
-    Dim v As Variant: v = m_wsTienDo.Cells(rowSch, 5).value
+    Dim v As Variant: v = m_wsTienDo.Cells(rowSch, 5).Value
     If IsNumeric(v) Then Me.TiLeThanhToanDot1 = CDbl(v) Else Me.TiLeThanhToanDot1 = 0
 
     Dim lastPeriod As Integer: lastPeriod = FindLastPaymentPeriod(rowSch)
@@ -118,16 +118,16 @@ Public Sub TinhTienDoThanhToan()
     BuildPaymentSchedule rowSch, lastPeriod
 End Sub
 
-' TI?N C?C m?c tiêu d? cân b?ng
+' TIỀN CỌC mục tiêu để cân bằng
 Public Function DepositTargetAmount() As Currency
     Dim target As Currency
     If Me.IsHDMBContract Then
-        target = R0(Me.TongThanhTien)
+        target = R0(Me.TongThanhTien)             ' HĐMB: tổng = S
     Else
         If Me.TienCoc_Override > 0 Then
-            target = R0(Me.TienCoc_Override)
+            target = R0(Me.TienCoc_Override)      ' Non-HĐMB: ưu tiên ô Data!T nếu có
         Else
-            target = R0(Me.TongThanhTien * Me.totalPct)
+            target = R0(Me.TongThanhTien * Me.totalPct) ' nếu không thì = S × tổng %
         End If
     End If
     DepositTargetAmount = target
@@ -146,75 +146,93 @@ End Sub
 Private Function GetContractTemplate(ByVal lookupValue As String) As String
     Dim rng As Range, defTpl As String, tpl As String, i As Long, key As String
     On Error Resume Next
-    Set rng = m_wsSetup.Range("G2:H" & m_wsSetup.Cells(m_wsSetup.Rows.count, "G").End(xlUp).Row)
+    Set rng = m_wsSetup.Range("G2:H" & m_wsSetup.Cells(m_wsSetup.Rows.Count, "G").End(xlUp).Row)
     On Error GoTo 0
-    If rng Is Nothing Or rng.Rows.count < 1 Then Exit Function
+    If rng Is Nothing Or rng.Rows.Count < 1 Then Exit Function
 
-    defTpl = rng.Cells(rng.Rows.count, 2).value
+    defTpl = rng.Cells(rng.Rows.Count, 2).Value
     tpl = defTpl
 
     lookupValue = UCase$(lookupValue)
-    For i = 1 To rng.Rows.count - 1
-        key = Trim$(UCase$(rng.Cells(i, 1).value))
+    For i = 1 To rng.Rows.Count - 1
+        key = Trim$(UCase$(rng.Cells(i, 1).Value))
         If Len(key) > 0 And (lookupValue Like "*" & key & "*") Then
-            tpl = rng.Cells(i, 2).value
+            tpl = rng.Cells(i, 2).Value
             Exit For
         End If
     Next i
     GetContractTemplate = tpl
 End Function
 
-' Uu tiên d?n m?c d?nh toàn c?c
+'--- Chuẩn hoá & kiểm tra ---
+Private Function NormalizeVN(ByVal s As String) As String
+    s = UCase$(Trim$(CStr(s)))
+    s = Replace(s, ChrW(272), "D") ' Đ
+    s = Replace(s, ChrW(208), "D") ' Ð
+    s = Replace(s, "–", "-"): s = Replace(s, "—", "-"): s = Replace(s, "−", "-")
+    Do While InStr(s, "  ") > 0: s = Replace(s, "  ", " "): Loop
+    NormalizeVN = s
+End Function
+
+Private Function IsValidPref(ByVal v As Variant) As Boolean
+    Dim s As String: s = UCase$(Trim$(CStr(v)))
+    If s = "LAST" Or s = "FIRST" Or s = "LARGEST" Then IsValidPref = True: Exit Function
+    If Len(s) = 0 Then Exit Function
+    Dim i As Long, ch As String
+    For i = 1 To Len(s)
+        ch = Mid$(s, i, 1)
+        If Not (ch Like "[0-9]" Or ch = ",") Then Exit Function
+    Next i
+    IsValidPref = True
+End Function
+
+'---- B20 làm mặc định (fallback); nếu không hợp lệ → LAST ----
 Private Function GetBalancePrefGlobal() As String
     Dim v As Variant
     On Error Resume Next
-    v = m_wsSetup.Range(BALANCE_PREF_GLOBAL_ADDR).value
+    v = m_wsSetup.Range(BALANCE_PREF_GLOBAL_ADDR).Value
     On Error GoTo 0
-    GetBalancePrefGlobal = UCase$(Trim$(CStr(v)))
-    If GetBalancePrefGlobal = "" Then GetBalancePrefGlobal = "LAST"
+    If IsValidPref(v) Then
+        GetBalancePrefGlobal = UCase$(Trim$(CStr(v)))
+    Else
+        GetBalancePrefGlobal = "LAST"
+    End If
 End Function
 
-' Uu tiên d?n theo tên ti?n d? (J:K)
-Private Function GetBalancePrefForSchedule(ByVal scheduleName As String) As String
-    Dim lastRow As Long, r As Long, key As String, pref As String
-    If Len(Trim$(scheduleName)) = 0 Then Exit Function
-    lastRow = m_wsSetup.Cells(m_wsSetup.Rows.count, BALANCE_PREF_KEY_COL).End(xlUp).Row
-    If lastRow < 2 Then Exit Function
+'---- J1/K1 override (chỉ khi cả hai có giá trị và J1 khớp mờ tên tiến độ) ----
+Private Function GetBalancePref_Override_J1K1(ByVal scheduleName As String) As String
+    Dim key As String, pref As Variant
+    key = NormalizeVN(m_wsSetup.Range(BALANCE_PREF_KEY_ADDR).Value)
+    pref = m_wsSetup.Range(BALANCE_PREF_VAL_ADDR).Value
 
-    For r = 2 To lastRow
-        key = UCase$(Trim$(CStr(m_wsSetup.Cells(r, BALANCE_PREF_KEY_COL).value)))
-        If key = UCase$(Trim$(scheduleName)) Then
-            pref = UCase$(Trim$(CStr(m_wsSetup.Cells(r, BALANCE_PREF_VAL_COL).value)))
-            If Len(pref) > 0 Then
-                GetBalancePrefForSchedule = pref
-                Exit Function
-            End If
+    If Len(key) = 0 Or Len(Trim$(CStr(pref))) = 0 Then Exit Function
+
+    If NormalizeVN(scheduleName) Like "*" & key & "*" Then
+        If IsValidPref(pref) Then
+            GetBalancePref_Override_J1K1 = UCase$(Trim$(CStr(pref)))
         End If
-    Next r
+    End If
 End Function
 
+'---- Quyết định quy tắc dồn: ƯU TIÊN J1/K1, nếu không có thì dùng B20 ----
 Private Function ResolveBalancePrefForCurrent() As String
     Dim pref As String
-    pref = GetBalancePrefForSchedule(Me.TenTienDo)
-    If pref = "" Then pref = GetBalancePrefGlobal()
+    pref = GetBalancePref_Override_J1K1(Me.TenTienDo)  ' override nếu có
+    If pref = "" Then
+        pref = GetBalancePrefGlobal()                   ' fallback luôn có
+    End If
     ResolveBalancePrefForCurrent = pref
 End Function
 
-' Xây th? t? các d?t d? d?n chênh.
-' - diff > 0 (thi?u): dùng uu tiên theo ti?n d? (pref).
-' - diff < 0 (du): ALWAYS LAST (t? d?t cu?i v? d?u).
+'---- Thứ tự dồn chênh (áp dụng cho cả diff>0 và diff<0) ----
 Private Function BuildBalanceOrder(ByVal lastPeriod As Integer, ByVal pref As String, ByVal diff As Currency) As Variant
     Dim used() As Boolean: ReDim used(1 To lastPeriod)
     Dim list() As Long: ReDim list(1 To lastPeriod)
     Dim count As Long: count = 0
     Dim i As Long, effectivePref As String
 
-    If diff < 0 Then
-        effectivePref = "LAST"
-    Else
-        effectivePref = UCase$(Trim$(pref))
-        If effectivePref = "" Then effectivePref = "LAST"
-    End If
+    effectivePref = UCase$(Trim$(pref))
+    If Len(effectivePref) = 0 Then effectivePref = "LAST"
 
     Select Case effectivePref
         Case "FIRST"
@@ -249,12 +267,13 @@ Private Function BuildBalanceOrder(ByVal lastPeriod As Integer, ByVal pref As St
             parts = Split(effectivePref, ",")
             For Each s In parts
                 If Len(Trim$(CStr(s))) > 0 And IsNumeric(s) Then
-                    n = CLng(val(s))
+                    n = CLng(Val(s))
                     If n >= 1 And n <= lastPeriod Then
                         If Not used(n) Then count = count + 1: list(count) = n: used(n) = True
                     End If
                 End If
             Next s
+            ' Phần còn lại theo LAST
             For i = lastPeriod To 1 Step -1
                 If Not used(i) Then count = count + 1: list(count) = i: used(i) = True
             Next i
@@ -266,9 +285,9 @@ End Function
 
 Private Function FindScheduleRow() As Long
     Dim i As Long, lastRow As Long
-    lastRow = m_wsTienDo.Cells(m_wsTienDo.Rows.count, "C").End(xlUp).Row
+    lastRow = m_wsTienDo.Cells(m_wsTienDo.Rows.Count, "C").End(xlUp).Row
     For i = 1 To lastRow
-        If Trim$(UCase$(m_wsTienDo.Cells(i, "C").value)) = Trim$(UCase$(Me.TenTienDo)) Then
+        If Trim$(UCase$(m_wsTienDo.Cells(i, "C").Value)) = Trim$(UCase$(Me.TenTienDo)) Then
             FindScheduleRow = i
             Exit Function
         End If
@@ -279,7 +298,7 @@ Private Function FindLastPaymentPeriod(ByVal scheduleRow As Long) As Integer
     Dim i As Integer, col As Integer, val As Variant
     For i = MAX_PAYMENT_PERIODS To 1 Step -1
         col = (i - 1) * 2 + 5
-        val = m_wsTienDo.Cells(scheduleRow, col).value
+        val = m_wsTienDo.Cells(scheduleRow, col).Value
         If IsNumeric(val) And Len(CStr(val)) > 0 Then
             FindLastPaymentPeriod = i
             Exit Function
@@ -288,7 +307,7 @@ Private Function FindLastPaymentPeriod(ByVal scheduleRow As Long) As Integer
 End Function
 
 Private Sub BuildPaymentSchedule(ByVal scheduleRow As Long, ByVal lastPeriod As Integer)
-    ' M?ng: [1]=S? ti?n, [2]=Ngày TT, [3]=% trên T?ng, [4]=S? ngày c?ng
+    ' Mảng: [1]=Số tiền, [2]=Ngày TT, [3]=% trên Tổng, [4]=Số ngày cộng
     ReDim m_TienDoThanhToan(1 To lastPeriod, 1 To 4)
 
     Dim totalPaid As Currency, currentDate As Date
@@ -296,8 +315,8 @@ Private Sub BuildPaymentSchedule(ByVal scheduleRow As Long, ByVal lastPeriod As 
     currentDate = Me.NgayTTDot1
 
     Dim pctDot1 As Variant, pctDot2 As Variant
-    pctDot1 = m_wsTienDo.Cells(scheduleRow, 5).value   ' E – Ð?t 1
-    pctDot2 = m_wsTienDo.Cells(scheduleRow, 7).value   ' G – Ð?t 2
+    pctDot1 = m_wsTienDo.Cells(scheduleRow, 5).Value   ' E – Đợt 1
+    pctDot2 = m_wsTienDo.Cells(scheduleRow, 7).Value   ' G – Đợt 2
 
     Dim isDot1Empty As Boolean, isDot2Empty As Boolean, isDot1_25pct As Boolean
     isDot1Empty = Not (IsNumeric(pctDot1) And Len(CStr(pctDot1)) > 0)
@@ -307,11 +326,11 @@ Private Sub BuildPaymentSchedule(ByVal scheduleRow As Long, ByVal lastPeriod As 
     Dim i As Integer
     For i = 1 To lastPeriod
         Dim pay As Currency, pct_raw As Variant, days_raw As Variant
-        pct_raw = m_wsTienDo.Cells(scheduleRow, (i - 1) * 2 + 5).value
-        days_raw = m_wsTienDo.Cells(scheduleRow, (i - 2) * 2 + 6).value
+        pct_raw = m_wsTienDo.Cells(scheduleRow, (i - 1) * 2 + 5).Value
+        days_raw = m_wsTienDo.Cells(scheduleRow, (i - 2) * 2 + 6).Value
 
         If Me.IsHDMBContract Then
-            ' ==== Các case d?c bi?t HÐMB – TRÒN 1 L?N ? CU?I ====
+            ' ==== Các case đặc biệt HĐMB – TRÒN 1 LẦN Ở CUỐI ====
             If i = 1 And isDot1Empty Then
                 pay = R0(m_ManualDot1)
 
@@ -335,7 +354,7 @@ Private Sub BuildPaymentSchedule(ByVal scheduleRow As Long, ByVal lastPeriod As 
             End If
 
         Else
-            ' ==== KHÔNG HÐMB ====
+            ' ==== KHÔNG HĐMB ====
             If IsNumeric(pct_raw) Then
                 pay = R0(Me.TongThanhTien * CDbl(pct_raw))
             Else
@@ -366,7 +385,7 @@ Private Sub BuildPaymentSchedule(ByVal scheduleRow As Long, ByVal lastPeriod As 
         m_TienDoThanhToan(i, 4) = days_raw
     Next i
 
-    ' ====== CÂN B?NG PH?N DU ======
+    ' ====== CÂN BẰNG PHẦN DƯ ======
     Dim targetTotal As Currency: targetTotal = DepositTargetAmount()
     Dim diff As Currency: diff = targetTotal - totalPaid
 
@@ -397,7 +416,7 @@ Private Sub BuildPaymentSchedule(ByVal scheduleRow As Long, ByVal lastPeriod As 
         Next idx
     End If
 
-    ' C?p nh?t l?i % tooltip
+    ' Cập nhật lại % tooltip
     Dim i2 As Integer
     For i2 = 1 To lastPeriod
         Dim pay2 As Currency: pay2 = m_TienDoThanhToan(i2, 1)
@@ -408,5 +427,3 @@ Private Sub BuildPaymentSchedule(ByVal scheduleRow As Long, ByVal lastPeriod As 
         End If
     Next i2
 End Sub
-
-
