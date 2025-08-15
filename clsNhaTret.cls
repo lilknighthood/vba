@@ -11,7 +11,7 @@ Public NgayKy As Date
 Public TenTienDo As String
 Public NgayTTDot1 As Date
 Public ThanhTienDat_Input As Currency
-Public ThanhTienNha_Input As Currency
+'Public ThanhTienNha_Input As Currency
 Public m_ManualDot1 As Currency
 Public m_ManualDot2 As Currency
 Public colTienDot2_ThuCong As Currency
@@ -76,8 +76,8 @@ End Property
 '========================================================================
 Public Sub XacDinhGiaTriGoc(ByVal totalPercent As Double)
     ' THÀNH_TI?N = THÀNH_TI?N_Ð?T + THÀNH_TI?N_NHÀ (n?u 2 c?t này có)
-    If Me.ThanhTienDat_Input > 0 Or Me.ThanhTienNha_Input > 0 Then
-        Me.TongThanhTien = Me.ThanhTienDat_Input + Me.ThanhTienNha_Input
+    If Me.ThanhTienDat_Input > 0 Then
+        Me.TongThanhTien = Me.ThanhTienDat_Input
     End If
     Me.GiaTriGocDeTinhTienDo = Me.TongThanhTien
     Me.totalPct = totalPercent
@@ -308,5 +308,7 @@ Private Sub BuildPaymentSchedule(ByVal scheduleRow As Long, ByVal lastPeriod As 
         End If
     Next i2
 End Sub
+
+
 
 
