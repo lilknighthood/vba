@@ -1,9 +1,9 @@
 {
   "latest_version": "3.7.1",
-  "changelog": "- Tối ưu kéo-thả\n- Sửa bug tách nhiều file",
+  "changelog": "- Tối ưu kéo-thả\n- Sửa lỗi tách nhiều file",
   "win64": {
-    "url": "https://drive.google.com/file/d/1zUIyzJl3cEDCSFc3uyKyQ138KuHSmbv6/view?usp=sharing",
-    "sha256": "213988D1E87FDF3597C84E6D60DCE145ADD7AE26B5582D6E70CB34FBC624C99B",
+    "url": "https://github.com/lilknighthood/vba/releases/download/untagged-ecc20ba5bc9b54549a6c/PDF_MANAGER_kog.vn.exe",
+    "sha256": "213988d1e87fdf3597c84e6d60dce145add7ae26b5582d6e70cb34fbc624c99b ",
     "size": 18765432
   }
 }
