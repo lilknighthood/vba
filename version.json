@@ -2,8 +2,8 @@
   "latest_version": "3.7.0",
   "changelog": "- Tối ưu kéo-thả\n- Sửa bug tách nhiều file",
   "win64": {
-    "url": "https://example.com/downloads/PDF_MANAGER_kog.vn_3.7.0_win64.exe",
-    "sha256": "PUT_SHA256_OF_EXE_HERE",
+    "url": "https://drive.google.com/file/d/1zUIyzJl3cEDCSFc3uyKyQ138KuHSmbv6/view?usp=sharing",
+    "sha256": "DD3A33BD12DA93FA1EB6DFDF42D8CBCB57E88D72A838FC70F2248A81ADC912F6",
     "size": 18765432
   }
 }
