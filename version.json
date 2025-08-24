@@ -1,0 +1,9 @@
+{
+  "latest_version": "3.7.1",
+  "changelog": "- Tối ưu kéo-thả\n- Sửa bug nhỏ",
+  "win64": {
+    "url": "https://github.com/lilknighthood/vba/releases/download/v1.0.0/PDF_MANAGER_kog.vn_3.7.1_win64.exe",
+    "sha256": "213988D1E87FDF3597C84E6D60DCE145ADD7AE26B5582D6E70CB34FBC624C99B",
+    "size": 18765432
+  }
+}
