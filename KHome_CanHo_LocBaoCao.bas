@@ -53,18 +53,19 @@ Sub LocBaoCao()
             resultsData(resultCounter, 7) = sourceData(i, 20)
             resultsData(resultCounter, 8) = sourceData(i, 28)
             resultsData(resultCounter, 9) = sourceData(i, 26)
-            resultsData(resultCounter, 10) = sourceData(i, 33)
-            resultsData(resultCounter, 11) = sourceData(i, 34)
-            resultsData(resultCounter, 12) = sourceData(i, 35)
-            resultsData(resultCounter, 13) = sourceData(i, 31)
+            resultsData(resultCounter, 10) = sourceData(i, 32)
+            resultsData(resultCounter, 11) = sourceData(i, 33)
+            resultsData(resultCounter, 12) = sourceData(i, 34)
+            resultsData(resultCounter, 13) = sourceData(i, 35)
+            resultsData(resultCounter, 14) = sourceData(i, 31)
         End If
     Next i
 
     ' --- GHI KET QUA RA SHEET TRINH KY ---
     With reportSheet
         ' Xoa du lieu cu va vien cu
-        .Range("A4:N" & .Rows.Count).ClearContents
-        .Range("A3:N" & .Rows.Count).Borders.LineStyle = xlNone
+        .Range("A4:O" & .Rows.Count).ClearContents
+        .Range("A3:O" & .Rows.Count).Borders.LineStyle = xlNone
         
         If resultCounter > 0 Then
             ' === PHAN MOI THEM: TAO SO THU TU CHO COT A ===
@@ -87,7 +88,7 @@ Sub LocBaoCao()
             
             ' Ke vien cho toan bo bang du lieu
             Dim borderRange As Range
-            Set borderRange = .Range("A3:N" & lastDataRow + 2)
+            Set borderRange = .Range("A3:O" & lastDataRow + 2)
             With borderRange.Borders
                 .LineStyle = xlContinuous
                 .Weight = xlThin
@@ -115,4 +116,5 @@ CleanupAndExit:
                vbCritical, "Loi Thuc Thi Macro"
     End If
 End Sub
+
 
