@@ -39,7 +39,7 @@ Sub LocBaoCao()
     ' --- XU LY DU LIEU ---
     ReDim resultsData(1 To UBound(sourceData, 1), 1 To 17)
     resultCounter = 0
-    Const COL_DOT_TT As Long = 27
+    Const COL_DOT_TT As Long = 29
     
     For i = 1 To UBound(sourceData, 1)
         If filterCondition = LCase(ALL_ITEMS_TEXT) Or LCase(CStr(sourceData(i, COL_DOT_TT))) = filterCondition Then
@@ -51,12 +51,12 @@ Sub LocBaoCao()
             resultsData(resultCounter, 5) = sourceData(i, 11)
             resultsData(resultCounter, 6) = sourceData(i, 12)
             resultsData(resultCounter, 7) = sourceData(i, 20)
-            resultsData(resultCounter, 8) = sourceData(i, 26)
-            resultsData(resultCounter, 9) = sourceData(i, 24)
-            resultsData(resultCounter, 10) = sourceData(i, 31)
-            resultsData(resultCounter, 11) = sourceData(i, 32)
-            resultsData(resultCounter, 12) = sourceData(i, 33)
-            resultsData(resultCounter, 13) = sourceData(i, 29)
+            resultsData(resultCounter, 8) = sourceData(i, 28)
+            resultsData(resultCounter, 9) = sourceData(i, 26)
+            resultsData(resultCounter, 10) = sourceData(i, 33)
+            resultsData(resultCounter, 11) = sourceData(i, 34)
+            resultsData(resultCounter, 12) = sourceData(i, 35)
+            resultsData(resultCounter, 13) = sourceData(i, 31)
         End If
     Next i
 
