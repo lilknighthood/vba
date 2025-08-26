@@ -7,7 +7,7 @@ Function LayDuongDanHopLe(ByVal wsNguon As Worksheet) As String
     Dim fldrPicker As FileDialog
     
     ' Doc duong dan tu o P2 cua sheet nguon
-    folderPath = wsNguon.Range("P2").Value
+    folderPath = wsNguon.Range("Q2").Value
     
     ' Tao doi tuong de kiem tra thu muc
     Set fso = CreateObject("Scripting.FileSystemObject")
@@ -15,7 +15,7 @@ Function LayDuongDanHopLe(ByVal wsNguon As Worksheet) As String
     ' Kiem tra xem duong dan co ton tai khong
     If folderPath = "" Or Not fso.FolderExists(folderPath) Then
         ' Neu khong, hien cua so cho nguoi dung chon
-        MsgBox "Duong dan luu file trong o P2 khong hop le hoac bi trong." & vbCrLf & _
+        MsgBox "Duong dan luu file trong o Q2 khong hop le hoac bi trong." & vbCrLf & _
                "Vui long chon mot thu muc de luu file.", vbInformation, "Thong Bao"
                
         Set fldrPicker = Application.FileDialog(msoFileDialogFolderPicker)
@@ -24,7 +24,7 @@ Function LayDuongDanHopLe(ByVal wsNguon As Worksheet) As String
         If fldrPicker.Show = True Then
             ' Neu nguoi dung chon, lay duong dan va luu vao o P2
             folderPath = fldrPicker.SelectedItems(1)
-            wsNguon.Range("P2").Value = folderPath
+            wsNguon.Range("Q2").Value = folderPath
             LayDuongDanHopLe = folderPath ' Tra ve duong dan da chon
         Else
             ' Neu nguoi dung huy, tra ve chuoi rong
@@ -44,15 +44,17 @@ End Function
 '--------------------------------------------------------------------------------------------------
 Sub TaoFileBaoCao()
     ' --- KHAI BAO BIEN ---
+
     Dim sourceSheet As Worksheet, newWb As Workbook, newSheet As Worksheet
     Dim sourceHeaderRange As Range, sourceDataRange As Range, sourceVisibleData As Range, borderRange As Range
     Dim i As Long
     Dim sourceLastRow As Long
     Dim fullSavePath As String, folderPath As String, fileName As String, fileNamePart As String
-    
+
     ' --- THIET LAP BAN DAU & XU LY LOI ---
     Set sourceSheet = Sheet3 ' >>> Ban hay kiem tra lai Sheet3 co dung la sheet nguon khong.
-    
+    Dim dotSo As String
+    dotSo = sourceSheet.Range("P2").Value
     Application.ScreenUpdating = False
     Application.DisplayAlerts = False
     Application.EnableEvents = False
@@ -76,9 +78,9 @@ Sub TaoFileBaoCao()
     
     ' --- TACH BIET DONG TIEU DE VA VUNG DU LIEU ---
     ' Vung du lieu nguon bao gom ca cot STT (A)
-    Set sourceHeaderRange = sourceSheet.Range("A2:Q2")
+    Set sourceHeaderRange = sourceSheet.Range("A2:R2")
     If sourceLastRow >= 3 Then
-        Set sourceDataRange = sourceSheet.Range("A3:Q" & sourceLastRow)
+        Set sourceDataRange = sourceSheet.Range("A3:R" & sourceLastRow)
         Set sourceVisibleData = sourceDataRange.SpecialCells(xlCellTypeVisible)
     End If
     
@@ -119,22 +121,22 @@ Sub TaoFileBaoCao()
             .VerticalAlignment = xlCenter
         End With
         
-        .Range("P:Q").ClearContents
+        .Range("P:R").ClearContents
         
         ' Dinh dang dong tieu de A1:N1
-        With .Range("A1:N1")
+        With .Range("A1:O1")
             .VerticalAlignment = xlCenter
             .HorizontalAlignment = xlCenterAcrossSelection
         End With
         ' Dinh dang dong du lieu dau tien A2:N2
-        With .Range("A2:N2")
+        With .Range("A2:O2")
             .VerticalAlignment = xlCenter    ' Canh giua theo chieu doc (Middle)
             .HorizontalAlignment = xlCenter  ' Canh giua theo chieu ngang (Center)
             .WrapText = True                 ' Xuong dong tu dong
         End With
 
         ' Ke vien cho toan bo bang
-        Set borderRange = .Range("A1:N" & finalDataRow + 3)
+        Set borderRange = .Range("A1:O" & finalDataRow + 3)
         With borderRange.Borders
             .LineStyle = xlContinuous
             .Weight = xlThin
@@ -144,10 +146,11 @@ Sub TaoFileBaoCao()
         If .DrawingObjects.Count > 0 Then .DrawingObjects.Delete
         
         ' Doi ten sheet va lam sach ten file
-        If .Range("O1").Value <> "" Then
-            .Name = .Range("O1").Value
-            fileNamePart = .Range("O1").Value
+        If dotSo <> "" Then
+            .Name = dotSo
+            fileNamePart = dotSo
         Else
+            .Name = "BaoCao" ' Ten mac dinh neu P2 trong
             fileNamePart = "BaoCao"
         End If
     End With
@@ -165,7 +168,7 @@ Sub TaoFileBaoCao()
     Dim fileExtension As String
     Dim counter As Long
     
-    baseName = folderPath & "K-HOME CAN HO Ð_" & fileNamePart & "_" & Format(Date, "yyyymmdd")
+    baseName = folderPath & "K-HOME CAN HO_Ð_" & fileNamePart & "_" & Format(Date, "yyyymmdd")
     fileExtension = ".xlsx"
     counter = 0
     
