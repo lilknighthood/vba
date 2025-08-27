@@ -106,11 +106,11 @@ Sub TaoFileBaoCao()
     
     ' --- DINH DANG VA XU LY FILE MOI ---
     With newSheet
+        .Cells.Font.Name = "Calibri"
         .Cells.EntireRow.AutoFit
-        
         ' === XOA BO PHAN TU TAO STT VI KHONG CAN THIET ===
-        
         ' Dinh nghia va dinh dang cho o chua ngay thang
+        
         Dim finalDataRow As Long
         finalDataRow = .Cells(.Rows.Count, "B").End(xlUp).row
         With .Cells(finalDataRow + 3, "G")
@@ -136,7 +136,7 @@ Sub TaoFileBaoCao()
         End With
 
         ' Ke vien cho toan bo bang
-        Set borderRange = .Range("A1:O" & finalDataRow + 3)
+        Set borderRange = .Range("A1:O" & finalDataRow)
         With borderRange.Borders
             .LineStyle = xlContinuous
             .Weight = xlThin
@@ -168,7 +168,7 @@ Sub TaoFileBaoCao()
     Dim fileExtension As String
     Dim counter As Long
     
-    baseName = folderPath & "K-HOME CAN HO_Ð_" & fileNamePart & "_" & Format(Date, "yyyymmdd")
+    baseName = folderPath & "K-HOME CAN HO_" & ChrW(272) & ChrW(7906) & "T_" & fileNamePart & "_" & Format(Date, "yyyymmdd")
     fileExtension = ".xlsx"
     counter = 0
     
