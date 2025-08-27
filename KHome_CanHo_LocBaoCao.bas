@@ -88,7 +88,7 @@ Sub LocBaoCao()
             
             ' Ke vien cho toan bo bang du lieu
             Dim borderRange As Range
-            Set borderRange = .Range("A3:O" & lastDataRow + 2)
+            Set borderRange = .Range("A3:O" & lastDataRow)
             With borderRange.Borders
                 .LineStyle = xlContinuous
                 .Weight = xlThin
@@ -116,5 +116,3 @@ CleanupAndExit:
                vbCritical, "Loi Thuc Thi Macro"
     End If
 End Sub
-
-
