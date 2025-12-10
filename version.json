@@ -1,9 +1,9 @@
 {
-  "latest_version": "3.8",
+  "latest_version": "3.8.1",
   "changelog": "- Thêm chức năng xoay file pdf",
   "win64": {
-    "url": "https://github.com/lilknighthood/vba/releases/download/v.3.8.0/PDF_MANAGER_kog.vn.exe",
-    "sha256": "8462975CEA8C4297D7C68D54CB994E4FE476110BA9D08FBDEDF1073A12995B68",
+    "url": "https://github.com/lilknighthood/vba/releases/download/v.3.8.1/PDF_MANAGER_kog.vn.exe",
+    "sha256": "320935763B855D071726C91A44DD24E64486773E221928511D879B8DB693312B",
     "size": 38765432
   }
 }
