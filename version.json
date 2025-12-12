@@ -3,7 +3,7 @@
   "changelog": "- Build version 3.8.4\n- Sửa lỗi giao diện tab TÁCH FILE PDF\n- Cải thiện layout khi toggle giữa các chế độ\n- Thêm version vào tên file",
   "win64": {
     "url": "https://github.com/lilknighthood/vba/releases/download/v3.8.4/PDF_MANAGER_kog.vn_v3.8.4.exe",
-    "sha256": "c449e384468b2859373a459b55e298800ff86eb954e93046650f3236dfb118f4",
-    "size": 48344724
+    "sha256": "0dc68ea19762e430d7080c30be57e51a4daf8df96285e505da312ea54766f166",
+    "size": 48342604
   }
 }
