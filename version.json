@@ -1,9 +1,9 @@
 {
-  "latest_version": "3.8.2",
-  "changelog": "- Thêm chức năng xoay file pdf",
+  "latest_version": "3.8.3",
+  "changelog": "- Build version 3.8.3\n- Sửa lỗi giao diện tab TÁCH FILE PDF\n- Cải thiện layout khi toggle giữa các chế độ\n- Thêm version vào tên file",
   "win64": {
-    "url": "https://github.com/lilknighthood/vba/releases/download/v.3.8.2/PDF_MANAGER_kog.vn_v3.8.2.exe",
-    "sha256": "e67349be4f3a86f3f159f57fe3743b45aab1e5c65b1f3f0974be71b298d91d2d",
-    "size": 38765432
+    "url": "https://github.com/lilknighthood/vba/releases/download/v3.8.3/PDF_MANAGER_kog.vn_v3.8.3.exe",
+    "sha256": "5e8a28d34d2735c5ef53b2af040d3d47c8dbd37746018dc6e270db415ae2ff9a",
+    "size": 48345023
   }
 }
