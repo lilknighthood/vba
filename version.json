@@ -1,9 +1,9 @@
 {
-  "latest_version": "3.9.1",
-  "changelog": "- Build version 3.9.1\n- Sửa lỗi giao diện tab TÁCH FILE PDF\n- Cải thiện layout khi toggle giữa các chế độ\n- Thêm version vào tên file",
+  "latest_version": "3.9.2",
+  "changelog": "- Build version 3.9.2\n- Sửa lỗi giao diện tab TÁCH FILE PDF\n- Cải thiện layout khi toggle giữa các chế độ\n- Thêm version vào tên file",
   "win64": {
-    "url": "https://github.com/lilknighthood/vba/releases/download/v3.9.1/PDF_MANAGER_kog.vn_v3.9.1.exe",
-    "sha256": "205eddbeaf8eb11afff56d56c3a571f507080463375cfa3064480b83aa1657fd",
-    "size": 49024920
+    "url": "https://github.com/lilknighthood/vba/releases/download/v3.9.2/PDF_MANAGER_kog.vn_v3.9.2.exe",
+    "sha256": "e35b98ef03eeb1a381067862a04ab309bf349f67aeec4f316c44aa473dfca92b",
+    "size": 49025876
   }
 }
