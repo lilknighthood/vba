@@ -1,7 +1,7 @@
 Option Explicit
 '====================================================================================================
 ' CHUC NANG: Tinh toan chi tiet tien do thanh toan cho mot dong cu the
-'            *** PHIEN BAN MOI: Da sua loi logic tinh toan dot cuoi cung ***
+'            *** PHIEN BAN: Lam tron toan bo chi tiet so tien cua tung Dot thanh toan ***
 '====================================================================================================
 Sub TinhTienDoThanhToan(ByVal activeRow As Long, ByVal giaBanCanHo As Currency, ByVal giaTriCanHo As Currency)
     '--- KHAI BAO BIEN SO DOT THANH TOAN TOI DA ---
@@ -48,7 +48,8 @@ Sub TinhTienDoThanhToan(ByVal activeRow As Long, ByVal giaBanCanHo As Currency, 
     
     '--- TINH VA GHI GIA TRI TIEN COC (SO VA CHU) ---
     Dim tienCocValue As Currency
-    tienCocValue = Round(giaBanCanHo * tongTyLePhanTram, 0)
+    ' Ép làm tròn s? ti?n c?c g?c v? s? nguyên tru?c khi gán
+    tienCocValue = Application.WorksheetFunction.Round(giaBanCanHo * tongTyLePhanTram, 0)
     wsData.Range(colTienCoc & activeRow).Value = tienCocValue
     wsData.Range(colBC_TienCoc & activeRow).Value = vnd(tienCocValue)
     
@@ -102,12 +103,13 @@ Sub TinhTienDoThanhToan(ByVal activeRow As Long, ByVal giaBanCanHo As Currency, 
         '--- Tinh tien ---
         If i < dotCuoiCung Then
             tyLePhanTram = wsTienDo.Cells(dongTienDo, (i - 1) * 2 + 5).Value
-            '*** SUA LOI TAI DAY: Luon tinh so tien dot dua tren GIA BAN CAN HO ***
-            soTienPhaiTra = VBA.Round(giaBanCanHo * tyLePhanTram, 0)
+            '=== CAP NHAT: Dung ham lam tron so hoc Excel thay cho VBA.Round ===
+            soTienPhaiTra = Application.WorksheetFunction.Round(giaBanCanHo * tyLePhanTram, 0)
             tongTienDaTra = tongTienDaTra + soTienPhaiTra
             tooltipText = "Ty le: " & Format(tyLePhanTram, "0.0%") & vbCrLf & "Thanh tien: " & Format(soTienPhaiTra, "#,##0")
         Else
-            soTienPhaiTra = baseAmount - tongTienDaTra
+            ' Ð?i v?i d?t cu?i cùng, l?y t?ng tr? các d?t tru?c d? b?o toàn s? t?ng cân b?ng
+            soTienPhaiTra = Application.WorksheetFunction.Round(baseAmount - tongTienDaTra, 0)
             tooltipText = "Phan con lai" & vbCrLf & "Thanh tien: " & Format(soTienPhaiTra, "#,##0")
         End If
         
