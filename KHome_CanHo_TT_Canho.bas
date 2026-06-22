@@ -1,7 +1,7 @@
 Option Explicit
 '====================================================================================================
 ' CHUC NANG CHINH: Tinh toan tong hop cho cac dong duoc chon
-'                  *** PHIEN BAN MOI: Da khoi phuc chuc nang ghi so tien bang chu ***
+'                  *** PHIEN BAN: Da dong bo lam tron so hoc Excel cho cac gia tri chinh ***
 '====================================================================================================
 Sub TinhToanTongHop_ChoDongHienTai()
     '--- KHAI BAO ---
@@ -72,22 +72,24 @@ Sub TinhToanTongHop_ChoDongHienTai()
                 dtThongThuy = wsData.Range(colDtThongThuy & activeRow).Value
                 
                 If giaBanCanHo > 0 And dtThongThuy > 0 Then
-                    giaTriQSDD = Round(dtThongThuy * heSoDat, 0)
-                    giaTriCanHo = Round((giaBanCanHo - giaTriQSDD) / 1.1, 0)
-                    thueGTGT = Round(giaTriCanHo * 0.1, 0)
-                    phiBaoTri = Round((giaTriQSDD + giaTriCanHo) * 0.02, 0)
+                    giaTriQSDD = dtThongThuy * heSoDat
+                    giaTriCanHo = (giaBanCanHo - giaTriQSDD) / 1.1
+                    thueGTGT = giaTriCanHo * 0.1
+                    phiBaoTri = (giaTriQSDD + giaTriCanHo) * 0.02
                     
+                    '=== CAP NHAT: Su dung cach lam tron so hoc cua Excel cho cac gia tri chinh ===
                     With wsData
-                        .Range(colGiaTriCanHo & activeRow).Value = giaTriCanHo
-                        .Range(colGiaTriQSDD & activeRow).Value = giaTriQSDD
-                        .Range(colThueGTGT & activeRow).Value = thueGTGT
-                        .Range(colPhiBaoTri & activeRow).Value = phiBaoTri
-                        '*** GHI LAI SO TIEN BANG CHU CHO CAC GIA TRI CHINH ***
+                        .Range(colGiaTriCanHo & activeRow).Value = Application.WorksheetFunction.Round(giaTriCanHo, 0)
+                        .Range(colGiaTriQSDD & activeRow).Value = Application.WorksheetFunction.Round(giaTriQSDD, 0)
+                        .Range(colThueGTGT & activeRow).Value = Application.WorksheetFunction.Round(thueGTGT, 0)
+                        .Range(colPhiBaoTri & activeRow).Value = Application.WorksheetFunction.Round(phiBaoTri, 0)
+                        
+                        ' Ghi lai chuoi so tien bang chu dua tren bien da tinh
                         .Range(colBC_GiaBan & activeRow).Value = vnd(giaBanCanHo)
-                        .Range(colBC_GiaTriCH & activeRow).Value = vnd(giaTriCanHo)
-                        .Range(colBC_GiaTriQSDD & activeRow).Value = vnd(giaTriQSDD)
-                        .Range(colBC_ThueGTGT & activeRow).Value = vnd(thueGTGT)
-                        .Range(colBC_PhiBaoTri & activeRow).Value = vnd(phiBaoTri)
+                        .Range(colBC_GiaTriCH & activeRow).Value = vnd(.Range(colGiaTriCanHo & activeRow).Value)
+                        .Range(colBC_GiaTriQSDD & activeRow).Value = vnd(.Range(colGiaTriQSDD & activeRow).Value)
+                        .Range(colBC_ThueGTGT & activeRow).Value = vnd(.Range(colThueGTGT & activeRow).Value)
+                        .Range(colBC_PhiBaoTri & activeRow).Value = vnd(.Range(colPhiBaoTri & activeRow).Value)
                     End With
                     
                     Call TinhTienDoThanhToan(activeRow, giaBanCanHo, giaTriCanHo)
