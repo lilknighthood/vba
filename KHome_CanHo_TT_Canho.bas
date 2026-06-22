@@ -72,10 +72,10 @@ Sub TinhToanTongHop_ChoDongHienTai()
                 dtThongThuy = wsData.Range(colDtThongThuy & activeRow).Value
                 
                 If giaBanCanHo > 0 And dtThongThuy > 0 Then
-                    giaTriQSDD = dtThongThuy * heSoDat
-                    giaTriCanHo = (giaBanCanHo - giaTriQSDD) / 1.1
-                    thueGTGT = giaTriCanHo * 0.1
-                    phiBaoTri = (giaTriQSDD + giaTriCanHo) * 0.02
+                    giaTriQSDD = Round(dtThongThuy * heSoDat, 0)
+                    giaTriCanHo = Round((giaBanCanHo - giaTriQSDD) / 1.1, 0)
+                    thueGTGT = Round(giaTriCanHo * 0.1, 0)
+                    phiBaoTri = Round((giaTriQSDD + giaTriCanHo) * 0.02, 0)
                     
                     With wsData
                         .Range(colGiaTriCanHo & activeRow).Value = giaTriCanHo
