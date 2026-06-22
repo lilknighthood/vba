@@ -48,7 +48,7 @@ Sub TinhTienDoThanhToan(ByVal activeRow As Long, ByVal giaBanCanHo As Currency, 
     
     '--- TINH VA GHI GIA TRI TIEN COC (SO VA CHU) ---
     Dim tienCocValue As Currency
-    tienCocValue = giaBanCanHo * tongTyLePhanTram
+    tienCocValue = Round(giaBanCanHo * tongTyLePhanTram, 0)
     wsData.Range(colTienCoc & activeRow).Value = tienCocValue
     wsData.Range(colBC_TienCoc & activeRow).Value = vnd(tienCocValue)
     
