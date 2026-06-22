@@ -1,7 +1,7 @@
 Option Explicit
 '====================================================================================================
 ' CHUC NANG CHINH: Tinh toan tong hop cho cac dong duoc chon
-'                  *** PHIEN BAN: Da dong bo lam tron so hoc Excel cho cac gia tri chinh ***
+'   *** PHIEN BAN MOI: Da khoi phuc chuc nang ghi so tien bang chu ***
 '====================================================================================================
 Sub TinhToanTongHop_ChoDongHienTai()
     '--- KHAI BAO ---
@@ -50,7 +50,7 @@ Sub TinhToanTongHop_ChoDongHienTai()
 
     For Each row In Selection.Rows
         If row.Hidden = False Then
-            activeRow = row.row
+            activeRow = row.Row
             
             '--- KIEM TRA DIEU KIEN ---
             If wsData.Range(colTenTienDo & activeRow).Value = "" Then
@@ -77,19 +77,17 @@ Sub TinhToanTongHop_ChoDongHienTai()
                     thueGTGT = giaTriCanHo * 0.1
                     phiBaoTri = (giaTriQSDD + giaTriCanHo) * 0.02
                     
-                    '=== CAP NHAT: Su dung cach lam tron so hoc cua Excel cho cac gia tri chinh ===
                     With wsData
                         .Range(colGiaTriCanHo & activeRow).Value = Application.WorksheetFunction.Round(giaTriCanHo, 0)
                         .Range(colGiaTriQSDD & activeRow).Value = Application.WorksheetFunction.Round(giaTriQSDD, 0)
                         .Range(colThueGTGT & activeRow).Value = Application.WorksheetFunction.Round(thueGTGT, 0)
                         .Range(colPhiBaoTri & activeRow).Value = Application.WorksheetFunction.Round(phiBaoTri, 0)
-                        
-                        ' Ghi lai chuoi so tien bang chu dua tren bien da tinh
+                        '*** GHI LAI SO TIEN BANG CHU CHO CAC GIA TRI CHINH ***
                         .Range(colBC_GiaBan & activeRow).Value = vnd(giaBanCanHo)
-                        .Range(colBC_GiaTriCH & activeRow).Value = vnd(.Range(colGiaTriCanHo & activeRow).Value)
-                        .Range(colBC_GiaTriQSDD & activeRow).Value = vnd(.Range(colGiaTriQSDD & activeRow).Value)
-                        .Range(colBC_ThueGTGT & activeRow).Value = vnd(.Range(colThueGTGT & activeRow).Value)
-                        .Range(colBC_PhiBaoTri & activeRow).Value = vnd(.Range(colPhiBaoTri & activeRow).Value)
+                        .Range(colBC_GiaTriCH & activeRow).Value = vnd(giaTriCanHo)
+                        .Range(colBC_GiaTriQSDD & activeRow).Value = vnd(giaTriQSDD)
+                        .Range(colBC_ThueGTGT & activeRow).Value = vnd(thueGTGT)
+                        .Range(colBC_PhiBaoTri & activeRow).Value = vnd(phiBaoTri)
                     End With
                     
                     Call TinhTienDoThanhToan(activeRow, giaBanCanHo, giaTriCanHo)
