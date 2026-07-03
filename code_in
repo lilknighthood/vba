@@ -1,0 +1,484 @@
+Option Explicit
+
+' ==========================================
+' CÁC SUB IN CHÍNH
+' ==========================================
+
+Sub In_ANDIEN_HDMB()
+    Dim sectionOrder As Variant
+    Dim copyConfig As Object
+    sectionOrder = Array("s1", "s2", "s3", "s4", "s5")
+    Set copyConfig = CreateObject("Scripting.Dictionary")
+    copyConfig("s1") = 4
+    copyConfig("s2") = 3
+    copyConfig("s3") = 3
+    copyConfig("s4") = 3
+    copyConfig("s5") = 3
+    Call PrintSectionsWithCopies(sectionOrder, copyConfig, "In_ANDIEN_HDMB")
+End Sub
+
+Sub In_LEGACY_HDMB()
+    Dim sectionOrder As Variant
+    Dim copyConfig As Object
+    sectionOrder = Array("s1", "s2", "s3", "s4")
+    Set copyConfig = CreateObject("Scripting.Dictionary")
+    copyConfig("s1") = 4
+    copyConfig("s2") = 4
+    copyConfig("s3") = 4
+    copyConfig("s4") = 4
+    Call PrintSectionsWithCopies(sectionOrder, copyConfig, "LEGACY_HDMB")
+End Sub
+
+Sub In_CENTURY_HDMB()
+    Dim sectionOrder As Variant
+    Dim copyConfig As Object
+    sectionOrder = Array("s1", "s2", "s3", "s4", "s5", "s6")
+    Set copyConfig = CreateObject("Scripting.Dictionary")
+    copyConfig("s1") = 4
+    copyConfig("s2") = 4
+    copyConfig("s3") = 4
+    copyConfig("s4") = 4
+    copyConfig("s5") = 4
+    copyConfig("s6") = 4
+    Call PrintSectionsWithCopies(sectionOrder, copyConfig, "CENTURY_HDMB")
+End Sub
+Sub In_CENTURY_HDMB_VAY()
+    Dim sectionOrder As Variant
+    Dim copyConfig As Object
+    sectionOrder = Array("s1", "s2", "s3", "s4", "s5", "s6")
+    Set copyConfig = CreateObject("Scripting.Dictionary")
+    copyConfig("s1") = 5
+    copyConfig("s2") = 4
+    copyConfig("s3") = 4
+    copyConfig("s4") = 4
+    copyConfig("s5") = 4
+    copyConfig("s6") = 4
+    Call PrintSectionsWithCopies(sectionOrder, copyConfig, "CENTURY_HDMB_VAY")
+End Sub
+
+Sub In_CAU_DO_HDMB()
+    Dim sectionOrder As Variant
+    Dim copyConfig As Object
+    
+    sectionOrder = Array("s1", "s2", "s3", "s4", "s5", "s6", "s7")
+    Set copyConfig = CreateObject("Scripting.Dictionary")
+    copyConfig("s1") = 4
+    copyConfig("s2") = 3
+    copyConfig("s3") = 4
+    copyConfig("s4") = 4
+    copyConfig("s5") = 4
+    copyConfig("s6") = 4
+    copyConfig("s7") = 2
+    
+    Call PrintSectionsWithCopies(sectionOrder, copyConfig, "CAU_DO_HDMB")
+End Sub
+
+Sub In_RICHLAND_HDMB()
+    Dim sectionOrder As Variant
+    Dim copyConfig As Object
+    sectionOrder = Array("s1", "s2", "s3", "s4", "s5", "s6", "s7")
+    Set copyConfig = CreateObject("Scripting.Dictionary")
+    copyConfig("s1") = 4
+    copyConfig("s2") = 3
+    copyConfig("s3") = 2
+    copyConfig("s4") = 4
+    copyConfig("s5") = 4
+    copyConfig("s6") = 4
+    copyConfig("s7") = 4
+    Call PrintSectionsWithCopies(sectionOrder, copyConfig, "RICHLAND_HDMB")
+End Sub
+
+Sub In_RICHLAND_HDMB_VAY_LAM_SO()
+    Dim sectionOrder As Variant
+    Dim copyConfig As Object
+    sectionOrder = Array("s1", "s4", "s5", "s6", "s7")
+    Set copyConfig = CreateObject("Scripting.Dictionary")
+    copyConfig("s1") = 2
+    copyConfig("s4") = 3
+    copyConfig("s5") = 3
+    copyConfig("s6") = 3
+    copyConfig("s7") = 3
+    Call PrintSectionsWithCopies(sectionOrder, copyConfig, "RICHLAND_HDMB_VAY_LAM_SO")
+End Sub
+Sub In_RICHLAND_HDMB_NHA()
+    Dim sectionOrder As Variant
+    Dim copyConfig As Object
+    
+    sectionOrder = Array("s1", "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9", "s10", "s11", "s12", "s13")
+    Set copyConfig = CreateObject("Scripting.Dictionary")
+    copyConfig("s1") = 4
+    copyConfig("s2") = 3
+    copyConfig("s3") = 2
+    copyConfig("s4") = 4
+    copyConfig("s5") = 4
+    copyConfig("s6") = 4
+    copyConfig("s7") = 4
+    copyConfig("s8") = 4
+    copyConfig("s9") = 4
+    copyConfig("s10") = 4
+    copyConfig("s11") = 4
+    copyConfig("s12") = 2
+    copyConfig("s13") = 4
+    
+    Call PrintSectionsWithCopies(sectionOrder, copyConfig, "RICHLAND_HDMB_VAY_LAM_SO_NHA")
+End Sub
+Sub In_RICHLAND_HDMB_VAY_LAM_SO_NHA()
+    Dim sectionOrder As Variant
+    Dim copyConfig As Object
+    
+    sectionOrder = Array("s1", "s4", "s5", "s6", "s7", "s8", "s9", "s10", "s11", "s12", "s13")
+    Set copyConfig = CreateObject("Scripting.Dictionary")
+    copyConfig("s1") = 2
+    copyConfig("s4") = 2
+    copyConfig("s5") = 2
+    copyConfig("s6") = 2
+    copyConfig("s7") = 2
+    copyConfig("s8") = 2
+    copyConfig("s9") = 2
+    copyConfig("s10") = 2
+    copyConfig("s11") = 2
+    copyConfig("s12") = 2
+    copyConfig("s13") = 2
+    
+    Call PrintSectionsWithCopies(sectionOrder, copyConfig, "RICHLAND_HDMB_VAY_LAM_SO_NHA")
+End Sub
+
+
+Sub In_BAUBANG_HDMB()
+    Dim sectionOrder As Variant
+    Dim copyConfig As Object
+    Dim i As Integer
+    sectionOrder = Array("s1", "s2", "s3", "s4", "s5")
+    Set copyConfig = CreateObject("Scripting.Dictionary")
+    For i = 1 To 5
+        copyConfig("s" & i) = 4
+    Next i
+    Call PrintSectionsWithCopies(sectionOrder, copyConfig, "BAUBANG_HDMB")
+End Sub
+
+Sub In_LEGACY_BSD()
+    Dim sectionOrder As Variant
+    Dim copyConfig As Object
+    Dim i As Integer
+    sectionOrder = Array("s1", "s2", "s3", "s4")
+    Set copyConfig = CreateObject("Scripting.Dictionary")
+    For i = 1 To 4
+        copyConfig("s" & i) = 4
+    Next i
+    Call PrintSectionsWithCopies(sectionOrder, copyConfig, "LEGACY_BSD")
+End Sub
+
+Sub In_LEGACY_HDMB_1N_SANG_2N()
+    Dim sectionOrder As Variant
+    Dim copyConfig As Object
+    sectionOrder = Array("s1", "s2", "s3", "s4", "s5")
+    Set copyConfig = CreateObject("Scripting.Dictionary")
+    copyConfig("s1") = 4
+    copyConfig("s2") = 4
+    copyConfig("s3") = 4
+    copyConfig("s4") = 4
+    copyConfig("s5") = 4
+    Call PrintSectionsWithCopies(sectionOrder, copyConfig, "HDMB_1N_SANG_2N")
+End Sub
+
+' ==========================================
+' HÀM CORE: IN T?NG SECTION V?I S? B?N
+' ==========================================
+
+Private Sub PrintSectionsWithCopies(sectionOrder As Variant, copyConfig As Object, configName As String)
+    If IsEmpty(sectionOrder) Then
+        MsgBox "Loi: Khong co section nao de in!", vbCritical
+        Exit Sub
+    End If
+    If copyConfig Is Nothing Or copyConfig.Count = 0 Then
+        MsgBox "Loi: Cau hinh so ban copy rong!", vbCritical
+        Exit Sub
+    End If
+    If Documents.Count = 0 Then
+        MsgBox "Khong co tai lieu nao dang mo!", vbExclamation
+        Exit Sub
+    End If
+
+    Dim oDoc As Document
+    Set oDoc = ActiveDocument
+
+    Dim totalSectionsInDoc As Integer
+    totalSectionsInDoc = oDoc.sections.Count
+
+    Dim section As Variant
+    Dim sKey As String
+    Dim sectionNumber As Integer
+    Dim copiesToPrint As Integer
+    Dim errorCount As Integer
+    Dim successCount As Integer
+    Dim totalCopiesSent As Integer
+    Dim processedSections As Object
+    Dim timeout As Long
+
+    Set processedSections = CreateObject("Scripting.Dictionary")
+    errorCount = 0
+    successCount = 0
+    totalCopiesSent = 0
+
+    Application.ScreenUpdating = False
+
+    For Each section In sectionOrder
+        sKey = CStr(section)
+
+        ' L?y s? section t? key: "s1"->1, "s2"->2
+        If Left(LCase(sKey), 1) = "s" And IsNumeric(Mid(sKey, 2)) Then
+            sectionNumber = CInt(Mid(sKey, 2))
+        Else
+            Debug.Print "Key khong hop le: " & sKey
+            errorCount = errorCount + 1
+            GoTo NextSection
+        End If
+
+        ' Ki?m tra section có t?n t?i trong file không
+        If sectionNumber < 1 Or sectionNumber > totalSectionsInDoc Then
+            Debug.Print "Section " & sectionNumber & " khong ton tai (file co " & totalSectionsInDoc & " sections)"
+            errorCount = errorCount + 1
+            GoTo NextSection
+        End If
+
+        ' L?y s? b?n in
+        If copyConfig.Exists(sKey) Then
+            copiesToPrint = copyConfig(sKey)
+        Else
+            copiesToPrint = 1
+        End If
+        If copiesToPrint <= 0 Then GoTo NextSection
+
+        On Error Resume Next
+        Err.Clear
+
+        ' ? Dùng "s1","s2"... Word t? nh?n di?n section
+        ' Gi? nguyên first page border/header c?a section
+        ' Background:=True d? không m?t border
+        Application.PrintOut _
+            FileName:="", _
+            Range:=wdPrintRangeOfPages, _
+            Item:=wdPrintDocumentWithMarkup, _
+            copies:=copiesToPrint, _
+            Pages:=sKey, _
+            PageType:=wdPrintAllPages, _
+            Collate:=True, _
+            Background:=True, _
+            PrintToFile:=False, _
+            PrintZoomColumn:=0, _
+            PrintZoomRow:=0, _
+            PrintZoomPaperWidth:=0, _
+            PrintZoomPaperHeight:=0
+
+        If Err.Number <> 0 Then
+            Debug.Print "Loi in " & sKey & ": " & Err.Description
+            errorCount = errorCount + 1
+            Err.Clear
+            On Error GoTo 0
+            GoTo NextSection
+        End If
+
+        On Error GoTo 0
+
+        ' ? Ch? Word g?i xong l?nh vào print queue th?t s?
+        ' m?i g?i l?nh in section ti?p theo
+        timeout = 0
+        Do While Application.BackgroundPrintingStatus > 0
+            DoEvents
+            timeout = timeout + 1
+            If timeout > 10000 Then Exit Do
+        Loop
+
+        processedSections(sKey) = copiesToPrint
+        successCount = successCount + 1
+        totalCopiesSent = totalCopiesSent + copiesToPrint
+
+NextSection:
+    Next section
+
+    Application.ScreenUpdating = True
+
+    Call ShowPrintSummary(configName, processedSections, successCount, errorCount, totalCopiesSent)
+
+    Set oDoc = Nothing
+    Set copyConfig = Nothing
+    Set processedSections = Nothing
+End Sub
+
+' ==========================================
+' HI?N TH? K?T QU? SAU KHI IN
+' ==========================================
+
+Private Sub ShowPrintSummary(configName As String, processedSections As Object, _
+                             successCount As Integer, errorCount As Integer, totalCopiesSent As Integer)
+    Dim summary As String
+    Dim key As Variant
+    Dim msgIcon As VbMsgBoxStyle
+
+    If processedSections.Count > 0 Then
+        summary = "Da gui lenh in thanh cong!" & vbNewLine & vbNewLine
+        summary = summary & "Cau hinh: " & configName & vbNewLine
+        summary = summary & "Sections da in:" & vbNewLine
+        For Each key In processedSections.Keys
+            summary = summary & "  Section " & Mid(CStr(key), 2) & ": " & processedSections(key) & " ban" & vbNewLine
+        Next key
+        summary = summary & vbNewLine & "Tong: " & successCount & " sections (" & totalCopiesSent & " ban)"
+        If errorCount > 0 Then
+            summary = summary & vbNewLine & "Canh bao: " & errorCount & " section bi loi!"
+            msgIcon = vbExclamation
+        Else
+            msgIcon = vbInformation
+        End If
+    Else
+        summary = "Khong co section nao duoc in!" & vbNewLine & vbNewLine
+        summary = summary & "Kiem tra lai:" & vbNewLine
+        summary = summary & "  - File co du section chua?" & vbNewLine
+        summary = summary & "  - May in da san sang chua?"
+        If errorCount > 0 Then
+            summary = summary & vbNewLine & "So loi: " & errorCount
+        End If
+        msgIcon = vbCritical
+    End If
+
+    MsgBox summary, msgIcon, "Ket qua in - " & configName
+End Sub
+
+' ==========================================
+' TI?N ÍCH: KI?M TRA SECTION TRONG FILE
+' ==========================================
+
+Sub KiemTraSectionTrongFile()
+    If Documents.Count = 0 Then
+        MsgBox "Khong co tai lieu nao dang mo!", vbExclamation
+        Exit Sub
+    End If
+
+    Dim oDoc As Document
+    Set oDoc = ActiveDocument
+
+    Dim info As String
+    Dim i As Integer
+
+    info = "File: " & oDoc.Name & vbNewLine
+    info = info & "Tong so section: " & oDoc.sections.Count & vbNewLine & vbNewLine
+    info = info & "Key se dung khi in:" & vbNewLine
+    For i = 1 To oDoc.sections.Count
+        info = info & "  Section " & i & " -> Pages: s" & i & vbNewLine
+    Next i
+
+    MsgBox info, vbInformation, "Thong tin Section - " & oDoc.Name
+    Set oDoc = Nothing
+End Sub
+
+' ==========================================
+' TI?N ÍCH: XEM TRU?C C?U HÌNH IN
+' ==========================================
+
+Sub TestPrintConfiguration()
+    Dim choice As VbMsgBoxResult
+    choice = MsgBox("Chon cau hinh de kiem tra:" & vbNewLine & vbNewLine & _
+                    "YES    = LEGACY_HDMB" & vbNewLine & _
+                    "NO     = LEGACY_BSD" & vbNewLine & _
+                    "CANCEL = HDMB_1N_SANG_2N", _
+                    vbYesNoCancel + vbQuestion, "Test Configuration")
+
+    Dim sectionOrder As Variant
+    Dim copyConfig As Object
+    Dim configName As String
+    Dim i As Integer
+
+    Select Case choice
+        Case vbYes
+            configName = "LEGACY_HDMB"
+            sectionOrder = Array("s1", "s2", "s3", "s4")
+            Set copyConfig = CreateObject("Scripting.Dictionary")
+            copyConfig("s1") = 5
+            copyConfig("s2") = 5
+            copyConfig("s3") = 4
+            copyConfig("s4") = 4
+        Case vbNo
+            configName = "LEGACY_BSD"
+            sectionOrder = Array("s1", "s2", "s3", "s4")
+            Set copyConfig = CreateObject("Scripting.Dictionary")
+            For i = 1 To 4
+                copyConfig("s" & i) = 4
+            Next i
+        Case vbCancel
+            configName = "HDMB_1N_SANG_2N"
+            sectionOrder = Array("s1", "s2", "s3", "s4", "s5")
+            Set copyConfig = CreateObject("Scripting.Dictionary")
+            copyConfig("s1") = 5
+            copyConfig("s2") = 4
+            copyConfig("s3") = 5
+            copyConfig("s4") = 4
+            copyConfig("s5") = 4
+        Case Else
+            Exit Sub
+    End Select
+
+    Call ShowPrintConfiguration(configName, sectionOrder, copyConfig)
+End Sub
+
+Private Sub ShowPrintConfiguration(configName As String, sectionOrder As Variant, copyConfig As Object)
+    Dim configInfo As String
+    Dim key As Variant
+    Dim totalCopies As Integer
+    Dim docSectionCount As Integer
+    Dim sNum As Integer
+    Dim warning As String
+
+    If Documents.Count > 0 Then
+        docSectionCount = ActiveDocument.sections.Count
+    Else
+        docSectionCount = 0
+    End If
+
+    configInfo = "Cau hinh    : " & configName & vbNewLine
+    configInfo = configInfo & "Thu tu in   : " & Join(sectionOrder, " -> ") & vbNewLine
+    configInfo = configInfo & "So section trong file: " & docSectionCount & vbNewLine & vbNewLine
+    configInfo = configInfo & "Chi tiet so ban in:" & vbNewLine
+
+    totalCopies = 0
+    For Each key In sectionOrder
+        Dim sKeyStr As String
+        sKeyStr = CStr(key)
+        If copyConfig.Exists(sKeyStr) Then
+            sNum = CInt(Mid(sKeyStr, 2))
+            warning = ""
+            If sNum > docSectionCount Then warning = "  *** VUOT QUA SO SECTION TRONG FILE! ***"
+            configInfo = configInfo & "  Section " & sNum & ": " & copyConfig(sKeyStr) & " ban" & warning & vbNewLine
+            totalCopies = totalCopies + copyConfig(sKeyStr)
+        End If
+    Next key
+
+    configInfo = configInfo & vbNewLine & "Tong cong: " & totalCopies & " ban"
+    MsgBox configInfo, vbInformation, "Xem truoc cau hinh - " & configName
+End Sub
+
+' ==========================================
+' TI?N ÍCH: T?O CONFIG T? CHU?I
+' ==========================================
+
+Function CreatePrintConfig(sections As String, copies As String) As Object
+    Dim sectionArr() As String
+    Dim copyArr() As String
+    Dim config As Object
+    Dim i As Integer
+
+    Set config = CreateObject("Scripting.Dictionary")
+    sectionArr = Split(sections, ",")
+    copyArr = Split(copies, ",")
+
+    If UBound(sectionArr) <> UBound(copyArr) Then
+        MsgBox "Loi: So luong sections va copies khong khop!", vbCritical
+        Set CreatePrintConfig = Nothing
+        Exit Function
+    End If
+
+    For i = 0 To UBound(sectionArr)
+        config(Trim(sectionArr(i))) = CInt(Trim(copyArr(i)))
+    Next i
+
+    Set CreatePrintConfig = config
+End Function
+
