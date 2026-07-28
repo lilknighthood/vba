@@ -55,6 +55,8 @@ Public Sub TaoSoHopDong(ByVal activeRow As Long)
     soHopDongHoanChinh = mauHopDong
     
     soHopDongHoanChinh = Replace(soHopDongHoanChinh, "[NAMKY]", Year(ngayKy), 1, -1, vbTextCompare)
+    soHopDongHoanChinh = Replace(soHopDongHoanChinh, "[NGAYKY]", Format(ngayKy, "dd"), 1, -1, vbTextCompare)
+    soHopDongHoanChinh = Replace(soHopDongHoanChinh, "[THANGKY]", Format(ngayKy, "MM"), 1, -1, vbTextCompare)
     soHopDongHoanChinh = Replace(soHopDongHoanChinh, "[NAMKY2]", Format(ngayKy, "yy"), 1, -1, vbTextCompare)
     soHopDongHoanChinh = Replace(soHopDongHoanChinh, "[CANHO]", maCanHo, 1, -1, vbTextCompare)
     
