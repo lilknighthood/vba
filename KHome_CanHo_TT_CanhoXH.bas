@@ -16,7 +16,7 @@ Sub TinhToanTongHop_ChoDongHienTai()
     processedCount = 0
     
     '--- KHAI BAO CAU HINH ---
-    Dim colGiaBan As String, colDtThongThuy As String, colTenTienDo As String, colBatDauNgayTT As String
+    Dim colGiaBan As String, colDtThongThuy As String, colTenTienDo As String, colBatDauNgayTT As String, colTongGiaHopDong
     Dim colGiaTriCanHo As String, colGiaTriQSDD As String, colThueGTGT As String, colPhiBaoTri As String
     Dim colNgayKy As String
     '*** THEM LAI CAU HINH BANG CHU ***
@@ -42,6 +42,7 @@ Sub TinhToanTongHop_ChoDongHienTai()
         colBC_GiaBan = .Range("B10").Value: colBC_GiaTriCH = .Range("B11").Value
         colBC_GiaTriQSDD = .Range("B12").Value: colBC_ThueGTGT = .Range("B13").Value
         colBC_PhiBaoTri = .Range("B14").Value
+        colTongGiaHopDong = colPhiBaoTri + colGiaTriCanHo
     End With
 
     '--- KHOI TAO ---
@@ -108,4 +109,5 @@ Sub TinhToanTongHop_ChoDongHienTai()
         MsgBox finalMsg, vbExclamation, "Luu y"
     End If
 End Sub
+
 
