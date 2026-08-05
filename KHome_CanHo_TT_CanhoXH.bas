@@ -1,7 +1,7 @@
 Option Explicit
 '====================================================================================================
 ' CHUC NANG CHINH: Tinh toan tong hop cho cac dong duoc chon
-'   *** PHIEN BAN MOI: Them tinh Tong Gia Tri Hop Dong (So va Chu tu B23, B24) ***
+'   *** PHIEN BAN MOI: Cap nhat tinh Phi Bao Tri rieng cho Can Ho Xa Hoi (CHXH) ***
 '====================================================================================================
 Sub TinhToanTongHop_ChoDongHienTai()
     '--- KHAI BAO ---
@@ -19,11 +19,11 @@ Sub TinhToanTongHop_ChoDongHienTai()
     Dim colGiaBan As String, colDtThongThuy As String, colTenTienDo As String, colBatDauNgayTT As String
     Dim colGiaTriCanHo As String, colGiaTriQSDD As String, colThueGTGT As String, colPhiBaoTri As String
     Dim colNgayKy As String
-    Dim colTongGiaTriHD As String ' Cot Tong Gia Tri HD (So)
+    Dim colTongGiaTriHD As String 
     
     '*** THEM LAI CAU HINH BANG CHU ***
     Dim colBC_GiaBan As String, colBC_GiaTriCH As String, colBC_GiaTriQSDD As String, colBC_ThueGTGT As String, colBC_PhiBaoTri As String
-    Dim colBC_TongGiaTriHD As String ' *** THEM MOI: Cot Tong Gia Tri HD (Chu) ***
+    Dim colBC_TongGiaTriHD As String 
 
     '--- DOC CAU HINH ---
     On Error Resume Next
@@ -47,7 +47,7 @@ Sub TinhToanTongHop_ChoDongHienTai()
         colBC_GiaBan = .Range("B10").Value: colBC_GiaTriCH = .Range("B11").Value
         colBC_GiaTriQSDD = .Range("B12").Value: colBC_ThueGTGT = .Range("B13").Value
         colBC_PhiBaoTri = .Range("B14").Value
-        colBC_TongGiaTriHD = .Range("B24").Value ' *** THEM MOI: Doc cau hinh tu B24 ***
+        colBC_TongGiaTriHD = .Range("B24").Value 
     End With
 
     '--- KHOI TAO ---
@@ -74,15 +74,36 @@ Sub TinhToanTongHop_ChoDongHienTai()
                 Dim giaTriQSDD As Currency, giaTriCanHo As Currency, thueGTGT As Currency, phiBaoTri As Currency
                 Dim tongGiaTriHD As Currency 
                 
+                ' *** BIEN MOI CHO CAN HO XA HOI ***
+                Dim isCHXH As Boolean 
+                Dim giaBanTruocVAT As Currency
+                
                 heSoDat = 729754.9204
                 giaBanCanHo = wsData.Range(colGiaBan & activeRow).Value
                 dtThongThuy = wsData.Range(colDtThongThuy & activeRow).Value
                 
+                ' === XAC DINH CAN HO XA HOI ===
+                ' Nhan dien bang cach tim chu "CHXH" trong Ten Tien Do (cot B7)
+                isCHXH = (InStr(1, UCase(wsData.Range(colTenTienDo & activeRow).Value), "CHXH") > 0)
+                
                 If giaBanCanHo > 0 And dtThongThuy > 0 Then
-                    giaTriQSDD = dtThongThuy * heSoDat
-                    giaTriCanHo = (giaBanCanHo - giaTriQSDD) / 1.1
-                    thueGTGT = giaTriCanHo * 0.1
-                    phiBaoTri = (giaTriQSDD + giaTriCanHo) * 0.02
+                    
+                    If isCHXH Then
+                        ' --- CONG THUC CHO CAN HO XA HOI ---
+                        giaBanTruocVAT = giaBanCanHo / 1.05 ' Tinh nguoc ve gia truoc VAT
+                        phiBaoTri = giaBanTruocVAT * 0.02   ' Nhan 2% de ra phi bao tri
+                        
+                        ' Tam thoi giu nguyen cong thuc cu cho cac gia tri khac
+                        giaTriQSDD = dtThongThuy * heSoDat
+                        giaTriCanHo = (giaBanCanHo - giaTriQSDD) / 1.1 
+                        thueGTGT = giaTriCanHo * 0.1
+                    Else
+                        ' --- CONG THUC CHO CAN HO THUONG MAI BINH THUONG ---
+                        giaTriQSDD = dtThongThuy * heSoDat
+                        giaTriCanHo = (giaBanCanHo - giaTriQSDD) / 1.1
+                        thueGTGT = giaTriCanHo * 0.1
+                        phiBaoTri = (giaTriQSDD + giaTriCanHo) * 0.02
+                    End If
                     
                     ' Tinh Tong Gia Tri HD (Gia ban + Phi bao tri)
                     tongGiaTriHD = giaBanCanHo + phiBaoTri
@@ -103,7 +124,7 @@ Sub TinhToanTongHop_ChoDongHienTai()
                         .Range(colBC_ThueGTGT & activeRow).Value = vnd(thueGTGT)
                         .Range(colBC_PhiBaoTri & activeRow).Value = vnd(phiBaoTri)
                         
-                        ' *** THEM MOI: Ghi bang chu cho Tong Gia Tri HD ***
+                        ' Ghi bang chu cho Tong Gia Tri HD
                         .Range(colBC_TongGiaTriHD & activeRow).Value = vnd(tongGiaTriHD)
                     End With
                     
