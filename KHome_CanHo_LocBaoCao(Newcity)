@@ -1,0 +1,179 @@
+Option Explicit
+
+Sub LocBaoCao_TrinhKy()
+    Dim wsSetup As Worksheet, wsTrinhKy As Worksheet, wsData As Worksheet
+    Dim sheetNameTrinhKy As String
+    Dim rowStartData As Long
+    Dim colFilterSource As String
+    Dim dotCanLoc As String
+    Dim lastRowData As Long, lastRowTK As Long
+    Dim filterColIndex As Long
+    Dim i As Long, r As Long, outRow As Long
+    Dim srcCol As String, tgtCol As String
+    
+    ' --- 1. KẾT NỐI SHEET ---
+    On Error Resume Next
+    Set wsSetup = ThisWorkbook.Sheets("Setup")
+    Set wsData = ThisWorkbook.Sheets("CAN HO K-HOME")
+    On Error GoTo 0
+    
+    If wsSetup Is Nothing Or wsData Is Nothing Then
+        MsgBox "Khong tim thay sheet Setup hoac CAN HO K-HOME!", vbCritical, "Loi"
+        Exit Sub
+    End If
+    
+    ' --- 2. ĐỌC CẤU HÌNH CƠ BẢN TỪ J2 ĐẾN J5 ---
+    sheetNameTrinhKy = Trim(wsSetup.Range("J2").Value)
+    rowStartData = CLng(wsSetup.Range("J4").Value) 
+    colFilterSource = Trim(wsSetup.Range("J5").Value) 
+    
+    Set wsTrinhKy = ThisWorkbook.Sheets(sheetNameTrinhKy)
+    dotCanLoc = Trim(wsTrinhKy.Range("F1").Value)
+    
+    If dotCanLoc = "" Then
+        MsgBox "Vui long nhap Đợt can loc tai o F1", vbExclamation, "Thong Bao"
+        Exit Sub
+    End If
+    
+    Application.ScreenUpdating = False
+    
+    ' --- 3. ĐỌC BẢNG MAPPING & CẤU HÌNH IN ĐẬM TỪ CỘT L ---
+    Dim mapCount As Long
+    Dim srcIndex() As Long, tgtIndex() As Long, isBold() As Boolean
+    Dim maxTgtCol As Long
+    
+    maxTgtCol = 1 
+    mapCount = 0
+    i = 7 
+    
+    While Trim(wsSetup.Range("J" & i).Value) <> "" And Trim(wsSetup.Range("K" & i).Value) <> ""
+        mapCount = mapCount + 1
+        ReDim Preserve srcIndex(1 To mapCount)
+        ReDim Preserve tgtIndex(1 To mapCount)
+        ReDim Preserve isBold(1 To mapCount)
+        
+        srcIndex(mapCount) = wsData.Range(Trim(wsSetup.Range("J" & i).Value) & "1").Column
+        tgtIndex(mapCount) = wsTrinhKy.Range(Trim(wsSetup.Range("K" & i).Value) & "1").Column
+        
+        If Trim(wsSetup.Range("L" & i).Value) <> "" Then
+            isBold(mapCount) = True
+        Else
+            isBold(mapCount) = False
+        End If
+        
+        If tgtIndex(mapCount) > maxTgtCol Then maxTgtCol = tgtIndex(mapCount)
+        i = i + 1
+    Wend
+    
+    ' --- 4. XÓA SẠCH DỮ LIỆU, KHUNG KẺ & CHỮ KÝ CŨ ---
+    Dim searchTK As Range
+    Set searchTK = wsTrinhKy.Cells.Find(What:="*", SearchOrder:=xlByRows, SearchDirection:=xlPrevious)
+    If Not searchTK Is Nothing Then
+        lastRowTK = searchTK.Row
+        If lastRowTK >= rowStartData Then
+            With wsTrinhKy.Range("A" & rowStartData & ":ZZ" & lastRowTK)
+                .ClearContents
+                .Borders.LineStyle = xlNone
+                .Font.Bold = False
+                .Font.Italic = False
+                .NumberFormat = "General"
+            End With
+        End If
+    End If
+    
+    ' --- 5. LỌC DỮ LIỆU TRONG BỘ NHỚ ---
+    lastRowData = wsData.Cells(wsData.Rows.Count, "E").End(xlUp).Row 
+    filterColIndex = wsData.Range(colFilterSource & "1").Column
+    
+    Dim arrData As Variant
+    arrData = wsData.Range("A1:ZZ" & lastRowData).Value
+    
+    Dim matchCount As Long
+    matchCount = 0
+    For r = 2 To lastRowData 
+        If CStr(arrData(r, filterColIndex)) = dotCanLoc Then
+            matchCount = matchCount + 1
+        End If
+    Next r
+    
+    ' --- 6. XUẤT KẾT QUẢ, FORMAT, KẺ KHUNG & IN ĐẬM ---
+    If matchCount > 0 Then
+        Dim arrResult As Variant
+        ReDim arrResult(1 To matchCount, 1 To maxTgtCol)
+        
+        outRow = 1
+        For r = 2 To lastRowData
+            If CStr(arrData(r, filterColIndex)) = dotCanLoc Then
+                arrResult(outRow, 1) = outRow ' STT
+                
+                Dim c As Long
+                For c = 1 To mapCount
+                    arrResult(outRow, tgtIndex(c)) = arrData(r, srcIndex(c))
+                Next c
+                
+                outRow = outRow + 1
+            End If
+        Next r
+        
+        Dim rngPaste As Range
+        Set rngPaste = wsTrinhKy.Range("A" & rowStartData).Resize(matchCount, maxTgtCol)
+        rngPaste.Value = arrResult
+        
+        ' Ke khung rieng cho bang du lieu
+        With rngPaste.Borders
+            .LineStyle = xlContinuous
+            .Weight = xlThin
+        End With
+        
+        Dim formatStr As String
+        For c = 1 To mapCount
+            formatStr = wsData.Cells(3, srcIndex(c)).NumberFormat
+            wsTrinhKy.Range(wsTrinhKy.Cells(rowStartData, tgtIndex(c)), _
+                            wsTrinhKy.Cells(rowStartData + matchCount - 1, tgtIndex(c))).NumberFormat = formatStr
+            If isBold(c) Then
+                wsTrinhKy.Range(wsTrinhKy.Cells(rowStartData, tgtIndex(c)), _
+                                wsTrinhKy.Cells(rowStartData + matchCount - 1, tgtIndex(c))).Font.Bold = True
+            End If
+        Next c
+        
+        ' --- 7. CHÈN NGƯỜI GỬI VÀ NGÀY GỬI VỚI FORMAT dd/MM/yyyy ---
+        Dim tenNguoiGui As String, cotChuKy As String
+        Dim ngayGuiVal As Variant, ngayGui As String
+        
+        tenNguoiGui = Trim(wsSetup.Range("M3").Value)
+        ngayGuiVal = wsSetup.Range("M4").Value
+        cotChuKy = Trim(wsSetup.Range("M5").Value)
+        
+        ' Xu ly dinh dang ngay thang cho M4
+        If IsDate(ngayGuiVal) Then
+            ngayGui = Format(ngayGuiVal, "dd/MM/yyyy")
+        Else
+            ngayGui = Trim(CStr(ngayGuiVal))
+        End If
+        
+        If cotChuKy <> "" Then
+            Dim rowChuKy As Long
+            rowChuKy = rowStartData + matchCount + 1 ' Cach bang du lieu 1 dong trong
+            
+            ' Dong 1: Ngay thang
+            If ngayGui <> "" Then 
+                wsTrinhKy.Range(cotChuKy & rowChuKy).NumberFormat = "@" ' Chuyen ve Text de giu format
+                wsTrinhKy.Range(cotChuKy & rowChuKy).Value = ngayGui
+            End If
+            
+            ' Dong 2: Ten 
+            If tenNguoiGui <> "" Then
+                wsTrinhKy.Range(cotChuKy & rowChuKy + 1).Value = tenNguoiGui
+                wsTrinhKy.Range(cotChuKy & rowChuKy + 1).Font.Bold = True
+            End If
+        End If
+        
+        MsgBox "Da loc va cap nhat thanh cong " & matchCount & " dong cho Đợt: " & dotCanLoc, vbInformation, "Hoan Thanh"
+    Else
+        MsgBox "Khong tim thay du lieu nao cho Đợt: " & dotCanLoc, vbInformation, "Thong Bao"
+    End If
+    
+    wsTrinhKy.Activate
+    wsTrinhKy.Range("F1").Select
+    Application.ScreenUpdating = True
+End Sub
