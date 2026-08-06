@@ -156,15 +156,21 @@ Sub LocBaoCao_TrinhKy()
             rowChuKy = rowStartData + matchCount + 1 ' Cach bang du lieu 1 dong trong
             
             ' Dong 1: Ngay thang
-            If ngayGui <> "" Then 
-                wsTrinhKy.Range(cotChuKy & rowChuKy).NumberFormat = "@" ' Chuyen ve Text de giu format
-                wsTrinhKy.Range(cotChuKy & rowChuKy).Value = ngayGui
+            If ngayGui <> "" Then
+                With wsTrinhKy.Range(cotChuKy & rowChuKy)
+                    .NumberFormat = "@" ' Chuyen ve Text de giu format
+                    .Value = ngayGui
+                    .HorizontalAlignment = xlCenter ' Can giua o
+                End With
             End If
             
-            ' Dong 2: Ten 
+            ' Dong 2: Ten
             If tenNguoiGui <> "" Then
-                wsTrinhKy.Range(cotChuKy & rowChuKy + 1).Value = tenNguoiGui
-                wsTrinhKy.Range(cotChuKy & rowChuKy + 1).Font.Bold = True
+                With wsTrinhKy.Range(cotChuKy & rowChuKy + 1)
+                    .Value = tenNguoiGui
+                    .Font.Bold = True
+                    .HorizontalAlignment = xlCenter ' Can giua o
+                End With
             End If
         End If
         
