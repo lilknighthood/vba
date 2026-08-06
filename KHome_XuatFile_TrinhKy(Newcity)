@@ -1,0 +1,120 @@
+Sub XuatFile_TrinhKy()
+    Dim wsSetup As Worksheet, wsTrinhKy As Worksheet
+    Dim sheetNameTrinhKy As String
+    Dim lastRow As Long, maxCol As Long
+    Dim newWb As Workbook, newWs As Worksheet
+    Dim copyRange As Range
+    Dim dotCanLoc As String
+    Dim folderPath As String, fullPath As String
+    Dim defaultName As String, customName As String
+    Dim searchRange As Range
+    
+    ' --- 1. DOC CAU HINH CO BAN ---
+    On Error Resume Next
+    Set wsSetup = ThisWorkbook.Sheets("Setup")
+    sheetNameTrinhKy = Trim(wsSetup.Range("J2").Value)
+    Set wsTrinhKy = ThisWorkbook.Sheets(sheetNameTrinhKy)
+    On Error GoTo 0
+    
+    If wsTrinhKy Is Nothing Then
+        MsgBox "Loi: Khong tim thay sheet Trinh Ky!", vbCritical
+        Exit Sub
+    End If
+    
+    ' --- 2. XU LY DUONG DAN LUU FILE (O M1) ---
+    folderPath = Trim(wsSetup.Range("M1").Value)
+    Dim pathExists As Boolean
+    pathExists = False
+    
+    ' Kiem tra xem duong dan co ton tai thuc te khong
+    If folderPath <> "" Then
+        On Error Resume Next
+        If Dir(folderPath, vbDirectory) <> "" Then
+            pathExists = True
+        End If
+        On Error GoTo 0
+    End If
+    
+    ' Neu duong dan khong ton tai (hoac chua tung thiet lap)
+    If pathExists = False Then
+        ' Chi bao loi neu da co duong dan nhung bi sai/xoa
+        If folderPath <> "" Then
+            MsgBox "Duong dan luu file hien tai khong ton tai hoac da bi xoa!" & vbCrLf & _
+                   "Vui long chon lai thu muc luu file.", vbExclamation, "Kiem Tra Duong Dan"
+        End If
+        
+        ' Hien cua so chon thu muc
+        With Application.FileDialog(msoFileDialogFolderPicker)
+            .Title = "Chon thu muc de luu File Bao Cao"
+            If .Show = -1 Then
+                folderPath = .SelectedItems(1)
+                wsSetup.Range("M1").Value = folderPath ' Luu lai vao Setup
+            Else
+                MsgBox "Ban da huy chon thu muc. Khong the xuat file!", vbExclamation, "Huy"
+                Exit Sub
+            End If
+        End With
+    End If
+    
+    ' Dam bao duong dan luon co dau "\" o cuoi
+    If Right(folderPath, 1) <> "\" Then folderPath = folderPath & "\"
+    
+    ' --- 3. XAC DINH CHINH XAC VUNG DU LIEU THAT SU ---
+    Set searchRange = wsTrinhKy.Cells.Find(What:="*", SearchOrder:=xlByRows, SearchDirection:=xlPrevious)
+    If searchRange Is Nothing Then
+        MsgBox "Khong co du lieu nao de xuat ra file!", vbExclamation, "Thong bao"
+        Exit Sub
+    Else
+        lastRow = searchRange.Row
+    End If
+    
+    Set searchRange = wsTrinhKy.Cells.Find(What:="*", SearchOrder:=xlByColumns, SearchDirection:=xlPrevious)
+    If searchRange Is Nothing Then
+        maxCol = 1
+    Else
+        maxCol = searchRange.Column
+    End If
+    
+    If lastRow < 2 Then
+        MsgBox "Khong co du lieu de xuat!", vbExclamation, "Thong Bao"
+        Exit Sub
+    End If
+    
+    Set copyRange = wsTrinhKy.Range(wsTrinhKy.Cells(2, 1), wsTrinhKy.Cells(lastRow, maxCol))
+    
+    ' --- 4. TAO FILE MOI & COPY ---
+    Application.ScreenUpdating = False
+    Set newWb = Workbooks.Add
+    Set newWs = newWb.Sheets(1)
+    
+    copyRange.Copy
+    With newWs.Range("A1")
+        .PasteSpecial Paste:=xlPasteColumnWidths ' Giu do rong cot
+        .PasteSpecial Paste:=xlPasteFormats      ' Giu format (mau, font, tien te, khung ke)
+        .PasteSpecial Paste:=xlPasteValuesAndNumberFormats ' Dan gia tri
+    End With
+    Application.CutCopyMode = False
+    
+    newWs.Range("A1").Select
+    
+    ' --- 5. DAT TEN VA LUU FILE TU DONG ---
+    dotCanLoc = Trim(wsTrinhKy.Range("F1").Value)
+    customName = Trim(wsSetup.Range("M6").Value) ' Doc ten tuy chinh tu o M6
+    
+    ' Kiem tra ten tuy chinh va ghep them thoi gian (NamThangNgay_GioPhutGiay)
+    If customName <> "" Then
+        defaultName = customName & "_" & Format(Now, "yyyymmdd_HHmmss") & ".xlsx"
+    Else
+        defaultName = "BaoCao_" & sheetNameTrinhKy & "_" & dotCanLoc & "_" & Format(Now, "yyyymmdd_HHmmss") & ".xlsx"
+    End If
+    
+    fullPath = folderPath & defaultName
+    
+    Application.DisplayAlerts = False 
+    newWb.SaveAs Filename:=fullPath, FileFormat:=xlOpenXMLWorkbook
+    Application.DisplayAlerts = True
+    
+    Application.ScreenUpdating = True
+    
+    MsgBox "Xuat file thanh cong!" & vbCrLf & "Duong dan: " & fullPath, vbInformation, "Hoan Thanh"
+End Sub
