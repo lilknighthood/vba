@@ -1,30 +1,20 @@
+' --- MACRO 2: XUẤT FILE TRÌNH KÝ ---
 Sub XuatFile_TrinhKy()
     Dim wsSetup As Worksheet, wsTrinhKy As Worksheet
-    Dim sheetNameTrinhKy As String
+    Dim sheetNameTrinhKy As String, folderPath As String, fullPath As String
+    Dim defaultName As String, customName As String, dotCanLoc As String
     Dim lastRow As Long, maxCol As Long
-    Dim newWb As Workbook, newWs As Worksheet
-    Dim copyRange As Range
-    Dim dotCanLoc As String
-    Dim folderPath As String, fullPath As String
-    Dim defaultName As String, customName As String
-    Dim searchRange As Range
+    Dim newWb As Workbook, newWs As Worksheet, copyRange As Range, searchRange As Range
     
-    On Error Resume Next
     Set wsSetup = ThisWorkbook.Sheets("Setup")
     sheetNameTrinhKy = Trim(wsSetup.Range("J2").Value)
     Set wsTrinhKy = ThisWorkbook.Sheets(sheetNameTrinhKy)
-    On Error GoTo 0
     
-    If wsTrinhKy Is Nothing Then
-        ' Khong dung tieng Viet co dau cung duoc vi code VBE bi loi font
-        MsgBoxUni "Loi: Khong tim thay sheet Trinh Ky!", vbCritical, "Loi"
-        Exit Sub
-    End If
+    ' Lấy tên đợt ngay từ đầu trước khi làm việc khác
+    dotCanLoc = Trim(wsTrinhKy.Range("F1").Value)
     
-    ' --- 1. XU LY DUONG DAN ---
     folderPath = Trim(wsSetup.Range("M1").Value)
     Dim pathExists As Boolean: pathExists = False
-    
     If folderPath <> "" Then
         On Error Resume Next
         If Dir(folderPath, vbDirectory) <> "" Then pathExists = True
@@ -32,12 +22,9 @@ Sub XuatFile_TrinhKy()
     End If
     
     If pathExists = False Then
-        If folderPath <> "" Then
-            MsgBoxUni "Duong dan hien tai da bi xoa! Vui long chon lai.", vbExclamation, "Chu y"
-        End If
-        
+        If folderPath <> "" Then MsgBoxUni "Đường dẫn hiện tại đã bị xóa! Vui lòng chọn lại.", vbExclamation, "Chú ý"
         With Application.FileDialog(msoFileDialogFolderPicker)
-            .Title = "Chon thu muc luu File"
+            .Title = "Chọn thư mục lưu File"
             If .Show = -1 Then
                 folderPath = .SelectedItems(1)
                 wsSetup.Range("M1").Value = folderPath
@@ -48,32 +35,33 @@ Sub XuatFile_TrinhKy()
     End If
     If Right(folderPath, 1) <> "\" Then folderPath = folderPath & "\"
     
-    ' --- 2. XAC DINH VUNG DU LIEU ---
     Set searchRange = wsTrinhKy.Cells.Find(What:="*", SearchOrder:=xlByRows, SearchDirection:=xlPrevious)
-    If searchRange Is Nothing Then Exit Sub Else lastRow = searchRange.row
+    If searchRange Is Nothing Then Exit Sub Else lastRow = searchRange.Row
     Set searchRange = wsTrinhKy.Cells.Find(What:="*", SearchOrder:=xlByColumns, SearchDirection:=xlPrevious)
     If searchRange Is Nothing Then maxCol = 1 Else maxCol = searchRange.Column
-    
     If lastRow < 2 Then Exit Sub
+    
+    ' ======================================================================
+    ' COPY TỪ DÒNG 2: Bỏ qua dòng 1 (chứa nút bấm) để file mới sạch sẽ hơn
+    ' ======================================================================
     Set copyRange = wsTrinhKy.Range(wsTrinhKy.Cells(2, 1), wsTrinhKy.Cells(lastRow, maxCol))
     
-    ' --- 3. GOI USERFORM CHON TEN BANG TIENG VIET ---
+    ' --- HIỂN THỊ FORM CHỌN TÊN ---
     frmChonTen.Show
-    
     If frmChonTen.DaHuy Then
         Unload frmChonTen
-        MsgBoxUni "Ban da huy xuat file!", vbInformation, "Thong bao"
+        MsgBoxUni "Bạn đã hủy xuất file!", vbInformation, "Thông báo"
         Exit Sub
     End If
     
     customName = frmChonTen.TenDuocChon
     Unload frmChonTen
     
-    ' --- 4. COPY VA TAO FILE MOI ---
     Application.ScreenUpdating = False
     Set newWb = Workbooks.Add
     Set newWs = newWb.Sheets(1)
     
+    ' COPY DỮ LIỆU SANG FILE MỚI (Dán vào A1)
     copyRange.Copy
     With newWs.Range("A1")
         .PasteSpecial Paste:=xlPasteColumnWidths
@@ -81,14 +69,32 @@ Sub XuatFile_TrinhKy()
         .PasteSpecial Paste:=xlPasteValuesAndNumberFormats
     End With
     Application.CutCopyMode = False
-    newWs.Range("A1").Select
     
-    ' --- 5. LUU FILE ---
-    dotCanLoc = Trim(wsTrinhKy.Range("F1").Value)
+    ' ======================================================================
+    ' TỰ ĐỘNG ĐỔI TIÊU ĐỀ A1 VÀ MERGE CELL (TỪ A1 ĐẾN MAXCOL) BÊN FILE MỚI
+    ' ======================================================================
+    If customName <> "" Then
+        ' Tạo chữ "ĐỢT" viết HOA chuẩn Unicode (Đ = 272, Ợ = 7906, T)
+        Dim chuDotHoa As String
+        chuDotHoa = ChrW(272) & ChrW(7906) & "T"
+        
+        ' Cập nhật nội dung ô A1 trong file mới
+        newWs.Range("A1").Value = UCase(customName) & " - " & chuDotHoa & " " & UCase(dotCanLoc)
+    End If
     
-    ' T?o ch? "Ð?t" b?ng mã Unicode chu?n d? không bao gi? b? l?i font
-    Dim chuDot As String
-    chuDot = ChrW(272) & ChrW(7906) & "T"
+    ' Hợp nhất ô (Merge) và căn giữa
+    Application.DisplayAlerts = False 
+    With newWs.Range(newWs.Cells(1, 1), newWs.Cells(1, maxCol))
+        .Merge
+        .HorizontalAlignment = xlCenter ' Căn giữa theo chiều ngang
+        .VerticalAlignment = xlCenter   ' Căn giữa theo chiều dọc
+        .Font.Bold = True               ' In đậm tiêu đề
+    End With
+    Application.DisplayAlerts = True
+    ' ======================================================================
+    
+    ' --- LƯU FILE CHÍNH THỨC ---
+    Dim chuDot As String: chuDot = ChrW(272) & ChrW(7907) & "t" ' Chữ "Đợt" thường cho tên file
     
     If customName <> "" Then
         defaultName = customName & " - " & chuDot & " " & dotCanLoc & " - " & Format(Now, "yyyymmdd_HHmmss") & ".xlsx"
@@ -96,7 +102,6 @@ Sub XuatFile_TrinhKy()
         defaultName = "BaoCao_" & sheetNameTrinhKy & "_" & chuDot & " " & dotCanLoc & "_" & Format(Now, "yyyymmdd_HHmmss") & ".xlsx"
     End If
     
-    ' Ch?ng l?i ký t? d?c bi?t
     Dim invalidChars As Variant, chr As Variant
     invalidChars = Array("/", "\", ":", "*", "?", "<", ">", "|")
     For Each chr In invalidChars
@@ -105,11 +110,10 @@ Sub XuatFile_TrinhKy()
     
     fullPath = folderPath & defaultName
     
-    Application.DisplayAlerts = False
-    newWb.SaveAs fileName:=fullPath, FileFormat:=xlOpenXMLWorkbook
+    Application.DisplayAlerts = False 
+    newWb.SaveAs Filename:=fullPath, FileFormat:=xlOpenXMLWorkbook
     Application.DisplayAlerts = True
     Application.ScreenUpdating = True
     
-    ' T?n d?ng hàm MsgBoxUni c?a b?n d? show du?ng d?n ch?a Ti?ng Vi?t mu?t mà!
-    MsgBoxUni "Xuat file thanh cong!" & vbCrLf & fullPath, vbInformation, "Thanh cong"
+    MsgBoxUni "Xuất file thành công!" & vbCrLf & fullPath, vbInformation, "Hoàn Thành"
 End Sub
