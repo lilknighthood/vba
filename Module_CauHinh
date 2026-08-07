@@ -1,0 +1,127 @@
+Option Explicit
+
+Sub LoadCauHinhCot()
+    Dim wsSetup As Worksheet, wsData As Worksheet, wsTrinhKy As Worksheet
+    Dim sheetNameTrinhKy As String
+    Dim headerRow As Long
+    Dim tenCot As String, colIndex As Long
+    Dim cell As Range, targetCells As Range
+    Dim r As Long, countUpdate As Long
+    Dim cotDich As String
+    Dim chonSheet As VbMsgBoxResult
+    Dim wsSearch As Worksheet
+    
+    ' --- 1. K?T N?I SHEET ---
+    On Error Resume Next
+    Set wsSetup = ThisWorkbook.Sheets("Setup")
+    Set wsData = ThisWorkbook.Sheets("CAN HO K-HOME")
+    sheetNameTrinhKy = Trim(wsSetup.Range("J2").Value)
+    Set wsTrinhKy = ThisWorkbook.Sheets(sheetNameTrinhKy)
+    On Error GoTo 0
+    
+    If wsSetup Is Nothing Or wsData Is Nothing Then
+        MsgBox "Loi: Khong tim thay sheet Setup hoac CAN HO K-HOME!", vbCritical
+        Exit Sub
+    End If
+    
+    If ActiveSheet.Name <> wsSetup.Name Then
+        MsgBox "Vui long mo sheet SETUP va boi den (chon) cac ten cot can cap nhat!", vbExclamation, "Chu Y"
+        Exit Sub
+    End If
+    
+    ' --- 2. KI?M TRA VÙNG CH?N ---
+    Set targetCells = Selection
+    
+    If targetCells.Cells.Count = 0 Then Exit Sub
+    If targetCells.Columns.Count > 1 Then
+        MsgBox "Vui long chi boi den cac o tren CUNG 1 COT de tranh ghi de du lieu!", vbExclamation, "Chu Y"
+        Exit Sub
+    End If
+    
+    ' --- 3. H?I NGU?I DÙNG C?T S? GHI K?T QU? ---
+    cotDich = InputBox("Ban muon ghi ket qua (Toa do chu cai) vao COT NAO?" & vbCrLf & vbCrLf & _
+                       "Vi du: De ghi vao cot B, hay go B" & vbCrLf & _
+                       "Vi du: De ghi vao cot J, hay go J", "Chon Cot Dich")
+                       
+    cotDich = Trim(UCase(cotDich)) ' Tu dong viet hoa va xoa khoang trang
+    
+    If cotDich = "" Then
+        MsgBox "Ban da huy thao tac cap nhat!", vbInformation, "Huy"
+        Exit Sub
+    End If
+    
+    ' Kiem tra xem nguoi dung co nhap dung dinh dang chu cai khong
+    If Not cotDich Like "[A-Z]" And Not cotDich Like "[A-Z][A-Z]" Then
+        MsgBox "Ten cot khong hop le! Vui long chi nhap chu cai (vd: B, J, K...).", vbCritical, "Loi Nhap Lieu"
+        Exit Sub
+    End If
+    
+    ' --- 4. H?I NGU?I DÙNG SHEET S? TÌM KI?M ---
+    chonSheet = MsgBox("Ban muon tim kiem cac tieu de nay o Sheet nao?" & vbCrLf & vbCrLf & _
+                       "[ YES ] = Tim o Sheet DATA (CAN HO K-HOME)" & vbCrLf & _
+                       "[ NO ]  = Tim o Sheet TRINH KY (" & sheetNameTrinhKy & ")" & vbCrLf & _
+                       "[ CANCEL ] = Huy thao tac", vbYesNoCancel + vbQuestion, "Chon Nguon Tim Kiem")
+                       
+    If chonSheet = vbCancel Then Exit Sub
+    
+    If chonSheet = vbYes Then
+        Set wsSearch = wsData
+        headerRow = 2 ' Dong tieu de cua sheet DATA la dong 2
+    Else
+        If wsTrinhKy Is Nothing Then
+            MsgBox "Khong tim thay sheet Trinh Ky: " & sheetNameTrinhKy, vbCritical
+            Exit Sub
+        End If
+        Set wsSearch = wsTrinhKy
+        headerRow = CLng(wsSetup.Range("J3").Value) ' Lay dong tieu de cua sheet Trinh Ky tu J3
+    End If
+    
+    Application.ScreenUpdating = False
+    countUpdate = 0
+    
+    ' --- 5. X? LÝ D? LI?U ---
+    For Each cell In targetCells
+        ' Chi xu ly neu o do co chu (tranh loi neu ban lanh tay boi den ca nhung o trong)
+        If Trim(cell.Value) <> "" Then
+            r = cell.row
+            tenCot = Trim(cell.Value)
+            
+            colIndex = TimViTriCot_ChongLoi(wsSearch, tenCot, headerRow)
+            
+            If colIndex > 0 Then
+                wsSetup.Range(cotDich & r).Value = Split(wsSearch.Cells(1, colIndex).Address, "$")(1)
+                wsSetup.Range(cotDich & r).Interior.ColorIndex = xlNone
+            Else
+                wsSetup.Range(cotDich & r).Value = "Loi"
+                wsSetup.Range(cotDich & r).Interior.Color = vbRed
+            End If
+            countUpdate = countUpdate + 1
+        End If
+    Next cell
+    
+    Application.ScreenUpdating = True
+    
+    If countUpdate > 0 Then
+        MsgBox "Da cap nhat Toa do vao COT [" & cotDich & "] cho " & countUpdate & " muc duoc chon!", vbInformation, "Hoan Tat"
+    Else
+        MsgBox "Khong co du lieu nao duoc cap nhat (co the vung chon toan o trong).", vbExclamation, "Chu Y"
+    End If
+End Sub
+
+' ====================================================================
+' HÀM H? TR?: TÌM V? TRÍ C?T (CH?NG L?I KHO?NG TR?NG, HOA/THU?NG)
+' ====================================================================
+Function TimViTriCot_ChongLoi(ws As Worksheet, tenCot As String, dongTieuDe As Long) As Long
+    Dim c As Long, lastCol As Long
+    TimViTriCot_ChongLoi = 0
+    
+    lastCol = ws.Cells(dongTieuDe, ws.Columns.Count).End(xlToLeft).Column
+    
+    For c = 1 To lastCol
+        If UCase(Trim(ws.Cells(dongTieuDe, c).Value)) = UCase(Trim(tenCot)) Then
+            TimViTriCot_ChongLoi = c
+            Exit Function
+        End If
+    Next c
+End Function
+
