@@ -10,30 +10,54 @@ Sub XuatFile_TrinhKy()
     sheetNameTrinhKy = Trim(wsSetup.Range("J2").Value)
     Set wsTrinhKy = ThisWorkbook.Sheets(sheetNameTrinhKy)
     
-    ' Lấy tên đợt ngay từ đầu trước khi làm việc khác
+    ' Lấy tên đợt
     dotCanLoc = Trim(wsTrinhKy.Range("F1").Value)
     
-    folderPath = Trim(wsSetup.Range("M1").Value)
-    Dim pathExists As Boolean: pathExists = False
-    If folderPath <> "" Then
-        On Error Resume Next
-        If Dir(folderPath, vbDirectory) <> "" Then pathExists = True
-        On Error GoTo 0
-    End If
+    ' ======================================================================
+    ' BẪY LỖI ĐƯỜNG DẪN LƯU FILE (VÒNG LẶP KIỂM TRA NGẶT NGHÈO)
+    ' ======================================================================
+    Dim isValidPath As Boolean: isValidPath = False
     
-    If pathExists = False Then
-        If folderPath <> "" Then MsgBoxUni "Đường dẫn hiện tại đã bị xóa! Vui lòng chọn lại.", vbExclamation, "Chú ý"
-        With Application.FileDialog(msoFileDialogFolderPicker)
-            .Title = "Chọn thư mục lưu File"
-            If .Show = -1 Then
-                folderPath = .SelectedItems(1)
-                wsSetup.Range("M1").Value = folderPath
-            Else
-                Exit Sub
+    Do While Not isValidPath
+        folderPath = Trim(wsSetup.Range("M1").Value)
+        
+        ' Kiểm tra xem chuỗi có rỗng không và đường dẫn có thực sự tồn tại trên ổ cứng không
+        If folderPath <> "" Then
+            On Error Resume Next
+            ' Lệnh GetAttr kiểm tra xem đường dẫn có trỏ đúng vào một thư mục (Directory) hay không
+            If (GetAttr(folderPath) And vbDirectory) = vbDirectory Then
+                isValidPath = True
             End If
-        End With
-    End If
+            On Error GoTo 0
+        End If
+        
+        ' Nếu đường dẫn sai hoặc bị trống, yêu cầu chọn lại
+        If Not isValidPath Then
+            If folderPath <> "" Then
+                MsgBoxUni "Đường dẫn [" & folderPath & "] không tồn tại hoặc đã bị xóa!" & vbCrLf & _
+                          "Vui lòng chọn lại thư mục lưu file.", vbExclamation, "Lỗi Đường Dẫn"
+            Else
+                MsgBoxUni "Chưa có đường dẫn lưu file! Vui lòng chọn thư mục.", vbExclamation, "Thiếu Đường Dẫn"
+            End If
+            
+            ' Mở hộp thoại chọn thư mục
+            With Application.FileDialog(msoFileDialogFolderPicker)
+                .Title = "Chọn thư mục lưu File Báo Cáo"
+                If .Show = -1 Then
+                    wsSetup.Range("M1").Value = .SelectedItems(1) ' Ghi đường dẫn mới vào M1
+                Else
+                    ' Nếu người dùng bấm Cancel, thoát hoàn toàn macro
+                    MsgBoxUni "Bạn đã hủy chọn thư mục. Quá trình xuất file bị hủy!", vbInformation, "Hủy Xuất File"
+                    Exit Sub 
+                End If
+            End With
+        End If
+    Loop
+    
+    ' Đảm bảo có dấu "\" ở cuối đường dẫn
+    folderPath = Trim(wsSetup.Range("M1").Value)
     If Right(folderPath, 1) <> "\" Then folderPath = folderPath & "\"
+    ' ======================================================================
     
     Set searchRange = wsTrinhKy.Cells.Find(What:="*", SearchOrder:=xlByRows, SearchDirection:=xlPrevious)
     If searchRange Is Nothing Then Exit Sub Else lastRow = searchRange.Row
@@ -41,9 +65,7 @@ Sub XuatFile_TrinhKy()
     If searchRange Is Nothing Then maxCol = 1 Else maxCol = searchRange.Column
     If lastRow < 2 Then Exit Sub
     
-    ' ======================================================================
-    ' COPY TỪ DÒNG 2: Bỏ qua dòng 1 (chứa nút bấm) để file mới sạch sẽ hơn
-    ' ======================================================================
+    ' COPY TỪ DÒNG 2 (Bỏ qua dòng 1 chứa nút bấm)
     Set copyRange = wsTrinhKy.Range(wsTrinhKy.Cells(2, 1), wsTrinhKy.Cells(lastRow, maxCol))
     
     ' --- HIỂN THỊ FORM CHỌN TÊN ---
@@ -70,31 +92,24 @@ Sub XuatFile_TrinhKy()
     End With
     Application.CutCopyMode = False
     
-    ' ======================================================================
-    ' TỰ ĐỘNG ĐỔI TIÊU ĐỀ A1 VÀ MERGE CELL (TỪ A1 ĐẾN MAXCOL) BÊN FILE MỚI
-    ' ======================================================================
+    ' TỰ ĐỘNG ĐỔI TIÊU ĐỀ A1 VÀ MERGE CELL TRONG FILE XUẤT RA
     If customName <> "" Then
-        ' Tạo chữ "ĐỢT" viết HOA chuẩn Unicode (Đ = 272, Ợ = 7906, T)
         Dim chuDotHoa As String
         chuDotHoa = ChrW(272) & ChrW(7906) & "T"
-        
-        ' Cập nhật nội dung ô A1 trong file mới
         newWs.Range("A1").Value = UCase(customName) & " - " & chuDotHoa & " " & UCase(dotCanLoc)
     End If
     
-    ' Hợp nhất ô (Merge) và căn giữa
     Application.DisplayAlerts = False 
     With newWs.Range(newWs.Cells(1, 1), newWs.Cells(1, maxCol))
         .Merge
-        .HorizontalAlignment = xlCenter ' Căn giữa theo chiều ngang
-        .VerticalAlignment = xlCenter   ' Căn giữa theo chiều dọc
-        .Font.Bold = True               ' In đậm tiêu đề
+        .HorizontalAlignment = xlCenter
+        .VerticalAlignment = xlCenter
+        .Font.Bold = True
     End With
     Application.DisplayAlerts = True
-    ' ======================================================================
     
     ' --- LƯU FILE CHÍNH THỨC ---
-    Dim chuDot As String: chuDot = ChrW(272) & ChrW(7907) & "t" ' Chữ "Đợt" thường cho tên file
+    Dim chuDot As String: chuDot = ChrW(272) & ChrW(7907) & "t" 
     
     If customName <> "" Then
         defaultName = customName & " - " & chuDot & " " & dotCanLoc & " - " & Format(Now, "yyyymmdd_HHmmss") & ".xlsx"
