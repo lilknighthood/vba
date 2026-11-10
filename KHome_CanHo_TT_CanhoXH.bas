@@ -19,11 +19,12 @@ Sub TinhToanTongHop_ChoDongHienTai()
     Dim colGiaBan As String, colDtThongThuy As String, colTenTienDo As String, colBatDauNgayTT As String, wsTienDo As Worksheet
     Dim colGiaTriCanHo As String, colGiaTriQSDD As String, colThueGTGT As String, colPhiBaoTri As String
     Dim colNgayKy As String
-    Dim colTongGiaTriHD As String 
+    Dim colTongGiaTriHD As String
+    Dim tenSheetData As String
     
     '*** THEM LAI CAU HINH BANG CHU ***
     Dim colBC_GiaBan As String, colBC_GiaTriCH As String, colBC_GiaTriQSDD As String, colBC_ThueGTGT As String, colBC_PhiBaoTri As String
-    Dim colBC_TongGiaTriHD As String 
+    Dim colBC_TongGiaTriHD As String
 
     '--- DOC CAU HINH ---
     On Error Resume Next
@@ -41,22 +42,45 @@ Sub TinhToanTongHop_ChoDongHienTai()
         colTenTienDo = .Range("B7").Value
         colBatDauNgayTT = .Range("B9").Value
         colNgayKy = .Range("B18").Value
-        colTongGiaTriHD = .Range("B23").Value 
+        colTongGiaTriHD = .Range("B23").Value
         
         '*** DOC LAI CAU HINH BANG CHU ***
         colBC_GiaBan = .Range("B10").Value: colBC_GiaTriCH = .Range("B11").Value
         colBC_GiaTriQSDD = .Range("B12").Value: colBC_ThueGTGT = .Range("B13").Value
         colBC_PhiBaoTri = .Range("B14").Value
-        colBC_TongGiaTriHD = .Range("B24").Value 
+        colBC_TongGiaTriHD = .Range("B24").Value
     End With
 
     '--- KHOI TAO ---
-    Set wsData = ThisWorkbook.Sheets("CAN HO K-HOME")
+    '--- DOC CAU HINH CHO PHAN TIEN DO ---
+    Set wsSetup = ThisWorkbook.Sheets("Setup")
+    Set wsTienDo = ThisWorkbook.Sheets("TIEN_DO_TT")
+    
+    '======================================================================
+    ' T? Ð?NG Ð?C TÊN SHEET DATA T? Ô K2 TRÊN SETUP
+    '======================================================================
+    tenSheetData = Trim(wsSetup.Range("K2").Value)
+    
+    ' N?u b?n quên chua nh?p ? K2, code s? t? l?y tên m?c d?nh cu d? không b? l?i
+    If tenSheetData = "" Then tenSheetData = "CAN HO K-HOME"
+    
+    On Error Resume Next
+    Set wsData = ThisWorkbook.Sheets(tenSheetData)
+    On Error GoTo 0
+    
+    ' B?y l?i: N?u tên sheet nh?p ? K2 không kh?p v?i b?t k? tab nào bên du?i
+    If wsData Is Nothing Then
+        MsgBox "Không tìm th?y Sheet d? li?u: [" & tenSheetData & "]." & vbCrLf & _
+               "Vui lòng ki?m tra l?i tên sheet ? ô K2 bên sheet SETUP!", vbCritical, "L?i Tên Sheet"
+        Exit Sub
+    End If
+    '======================================================================
+    
     Application.ScreenUpdating = False
 
     For Each row In Selection.Rows
         If row.Hidden = False Then
-            activeRow = row.Row
+            activeRow = row.row
             
             '--- KIEM TRA DIEU KIEN ---
             If wsData.Range(colTenTienDo & activeRow).Value = "" Then
@@ -72,10 +96,10 @@ Sub TinhToanTongHop_ChoDongHienTai()
                 '--- TINH TOAN GIA TRI CO BAN ---
                 Dim heSoDat As Double, giaBanCanHo As Currency, dtThongThuy As Double
                 Dim giaTriQSDD As Currency, giaTriCanHo As Currency, thueGTGT As Currency, phiBaoTri As Currency
-                Dim tongGiaTriHD As Currency 
+                Dim tongGiaTriHD As Currency
                 
                 ' *** BIEN MOI CHO CAN HO XA HOI ***
-                Dim isCHXH As Boolean 
+                Dim isCHXH As Boolean
                 Dim giaBanTruocVAT As Currency
                 
                 heSoDat = 729754.9204
@@ -95,7 +119,7 @@ Sub TinhToanTongHop_ChoDongHienTai()
                         
                         ' Tam thoi giu nguyen cong thuc cu cho cac gia tri khac
                         giaTriQSDD = dtThongThuy * heSoDat
-                        giaTriCanHo = (giaBanCanHo - giaTriQSDD) / 1.1 
+                        giaTriCanHo = (giaBanCanHo - giaTriQSDD) / 1.1
                         thueGTGT = giaTriCanHo * 0.1
                     Else
                         ' --- CONG THUC CHO CAN HO THUONG MAI BINH THUONG ---
@@ -145,3 +169,4 @@ Sub TinhToanTongHop_ChoDongHienTai()
         MsgBox finalMsg, vbExclamation, "Luu y"
     End If
 End Sub
+
