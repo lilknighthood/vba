@@ -1,11 +1,11 @@
 Option Explicit
 '====================================================================================================
 ' CHUC NANG: Tinh toan chi tiet tien do thanh toan cho mot dong cu the
-'            *** PHIEN BAN MOI: Da sua loi logic tinh toan dot cuoi cung ***
+'            *** PHIEN BAN MOI: Cap nhat tinh nang nhan dien Ngay Cu The / So Ngay ***
 '====================================================================================================
 Sub TinhTienDoThanhToan(ByVal activeRow As Long, ByVal giaBanCanHo As Currency, ByVal giaTriCanHo As Currency)
     '--- KHAI BAO BIEN SO DOT THANH TOAN TOI DA ---
-    Const maxSoDotThanhToan As Integer = 20
+    Const maxSoDotThanhToan As Integer = 26
     
     '--- KHAI BAO DOI TUONG VA BIEN CAU HINH ---
     Dim wsSetup As Worksheet, wsData As Worksheet, wsTienDo As Worksheet
@@ -102,7 +102,7 @@ Sub TinhTienDoThanhToan(ByVal activeRow As Long, ByVal giaBanCanHo As Currency, 
         '--- Tinh tien ---
         If i < dotCuoiCung Then
             tyLePhanTram = wsTienDo.Cells(dongTienDo, (i - 1) * 2 + 5).Value
-            '*** SUA LOI TAI DAY: Luon tinh so tien dot dua tren GIA BAN CAN HO ***
+            '*** Luon tinh so tien dot dua tren GIA BAN CAN HO ***
             soTienPhaiTra = Application.WorksheetFunction.Round(giaBanCanHo * tyLePhanTram, 0)
             tongTienDaTra = tongTienDaTra + soTienPhaiTra
             tooltipText = "Ty le: " & Format(tyLePhanTram, "0.0%") & vbCrLf & "Thanh tien: " & Format(soTienPhaiTra, "#,##0")
@@ -127,30 +127,48 @@ Sub TinhTienDoThanhToan(ByVal activeRow As Long, ByVal giaBanCanHo As Currency, 
         End With
         On Error GoTo 0
         
-        '--- Tinh ngay (tu dot 2 tro di) ---
+        '======================================================================
+        ' BỘ LỌC THÔNG MINH: TÍNH NGÀY THANH TOÁN (Từ đợt 2 trở đi)
+        '======================================================================
         If i > 1 Then
             Set targetDateCell = wsData.Cells(activeRow, colIndexNgayOutput + (i - 1) * 2)
-            Dim soNgayCongThem As Variant
-            soNgayCongThem = wsTienDo.Cells(dongTienDo, (i - 2) * 2 + 6).Value
-            If IsNumeric(soNgayCongThem) And soNgayCongThem <> "" Then
-                ngayTiepTheo = DateAdd("d", soNgayCongThem, ngayThanhToanHienTai)
+            Dim giaTriNhap As Variant
+            giaTriNhap = wsTienDo.Cells(dongTienDo, (i - 2) * 2 + 6).Value
+            
+            If Trim(CStr(giaTriNhap)) <> "" Then
+                ' KIỂM TRA: Số ngày cộng thêm vs Ngày cụ thể
+                If IsNumeric(giaTriNhap) And VarType(giaTriNhap) <> vbDate And VarType(giaTriNhap) <> vbString Then
+                    ' 1. Trạng thái SỐ (VD: 7, 15, 30) -> Lấy Ngày cũ + Số ngày
+                    ngayTiepTheo = DateAdd("d", CLng(giaTriNhap), ngayThanhToanHienTai)
+                    tooltipText = Format(ngayThanhToanHienTai, "dd/MM/yyyy") & " + " & giaTriNhap & " ngay"
+                    
+                ElseIf IsDate(giaTriNhap) Then
+                    ' 2. Trạng thái NGÀY (VD: 15/11/2026) -> Lấy chính ngày đó
+                    ngayTiepTheo = CDate(giaTriNhap)
+                    tooltipText = "Ngay co dinh: " & Format(ngayTiepTheo, "dd/MM/yyyy")
+                End If
+                
+                ' Ghi kết quả ngày vào ô
                 targetDateCell.Value = ngayTiepTheo
                 
-                tooltipText = Format(ngayThanhToanHienTai, "dd/mm/yyyy") & " + " & soNgayCongThem & " ngay"
+                ' Gắn Tooltip giải thích cách tính
                 On Error Resume Next
                 targetDateCell.Validation.Delete
                 targetDateCell.Validation.Add Type:=0, AlertStyle:=1, Operator:=1
                 With targetDateCell.Validation
-                    .InputTitle = "Cong thuc tinh Ngay TT Dot " & i
+                    .InputTitle = "Cach tinh Ngay TT Dot " & i
                     .InputMessage = tooltipText
                     .ShowInput = True
                     .ShowError = False
                 End With
                 On Error GoTo 0
                 
+                ' Cập nhật ngày hiện tại để làm mốc tính cho đợt tiếp theo
                 ngayThanhToanHienTai = ngayTiepTheo
             End If
         End If
+        '======================================================================
+        
     Next i
     
     '--- Ghi gia tri cho cot KIEM_TRA ---
