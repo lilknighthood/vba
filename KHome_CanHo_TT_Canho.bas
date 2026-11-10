@@ -16,7 +16,7 @@ Sub TinhToanTongHop_ChoDongHienTai()
     processedCount = 0
     
     '--- KHAI BAO CAU HINH ---
-    Dim colGiaBan As String, colDtThongThuy As String, colTenTienDo As String, colBatDauNgayTT As String
+    Dim colGiaBan As String, colDtThongThuy As String, colTenTienDo As String, colBatDauNgayTT As String, wsTienDo As Worksheet
     Dim colGiaTriCanHo As String, colGiaTriQSDD As String, colThueGTGT As String, colPhiBaoTri As String
     Dim colNgayKy As String
     '*** THEM LAI CAU HINH BANG CHU ***
