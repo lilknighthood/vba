@@ -1,7 +1,7 @@
 Option Explicit
 '====================================================================================================
-' CHUC NANG: Tinh toan chi tiet tien do thanh toan cho mot dong cu the
-'            *** PHIEN BAN MOI: Cap nhat tinh nang nhan dien Ngay Cu The / So Ngay ***
+' CHUC NANG: Tinh toan chi tiet tien do thanh toan cho mot dong cu Wales
+'            *** PHIEN BAN MOI: Nhận diện Ngày Cụ Thể và Tự động load tên Sheet Dữ Liệu ***
 '====================================================================================================
 Sub TinhTienDoThanhToan(ByVal activeRow As Long, ByVal giaBanCanHo As Currency, ByVal giaTriCanHo As Currency)
     '--- KHAI BAO BIEN SO DOT THANH TOAN TOI DA ---
@@ -13,9 +13,32 @@ Sub TinhTienDoThanhToan(ByVal activeRow As Long, ByVal giaBanCanHo As Currency, 
     Dim colTiLeTT As String, colTienCoc As String, colKiemTra As String
     Dim colBC_TienCoc As String
     Dim colBC_Dot1 As String
+    Dim tenSheetData As String ' Biến mới để lưu tên sheet linh hoạt
 
     '--- DOC CAU HINH CHO PHAN TIEN DO ---
-    Set wsSetup = ThisWorkbook.Sheets("Setup"): Set wsData = ThisWorkbook.Sheets("CAN HO K-HOME"): Set wsTienDo = ThisWorkbook.Sheets("TIEN_DO_TT")
+    Set wsSetup = ThisWorkbook.Sheets("Setup")
+    Set wsTienDo = ThisWorkbook.Sheets("TIEN_DO_TT")
+    
+    '======================================================================
+    ' TỰ ĐỘNG ĐỌC TÊN SHEET DATA TỪ Ô K2 TRÊN SETUP
+    '======================================================================
+    tenSheetData = Trim(wsSetup.Range("K2").Value)
+    
+    ' Nếu ô K2 trống, lấy mặc định để đảm bảo hệ thống không bị lỗi
+    If tenSheetData = "" Then tenSheetData = "CAN HO K-HOME" 
+    
+    On Error Resume Next
+    Set wsData = ThisWorkbook.Sheets(tenSheetData)
+    On Error GoTo 0
+    
+    ' Bẫy lỗi: Nếu tên sheet nhập ở K2 không khớp với bất kỳ tab nào bên dưới
+    If wsData Is Nothing Then
+        MsgBox "Không tìm thấy Sheet dữ liệu: [" & tenSheetData & "]." & vbCrLf & _
+               "Vui lòng kiểm tra lại tên sheet ở ô K2 bên sheet SETUP!", vbCritical, "Lỗi Tên Sheet"
+        Exit Sub
+    End If
+    '======================================================================
+
     With wsSetup
         colTenTienDo = .Range("B7").Value: colBatDauTraTien = .Range("B8").Value
         colBatDauNgayTT = .Range("B9").Value
