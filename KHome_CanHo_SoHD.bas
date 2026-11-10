@@ -21,8 +21,27 @@ Public Sub TaoSoHopDong(ByVal activeRow As Long)
     
     If colCanHo = "" Or colNgayKy = "" Or colSoHD = "" Or colTenTienDo = "" Then Exit Sub
 
-    '--- KHOI TAO ---
-    Set wsData = ThisWorkbook.Sheets("CAN HO K-HOME")
+    
+    '======================================================================
+    ' T? Ð?NG Ð?C TÊN SHEET DATA T? Ô K2 TRÊN SETUP
+    '======================================================================
+    Dim tenSheetData As String
+    tenSheetData = Trim(wsSetup.Range("K2").Value)
+    
+    ' N?u b?n quên chua nh?p ? K2, code s? t? l?y tên m?c d?nh cu d? không b? l?i
+    If tenSheetData = "" Then tenSheetData = "CAN HO K-HOME"
+    
+    On Error Resume Next
+    Set wsData = ThisWorkbook.Sheets(tenSheetData)
+    On Error GoTo 0
+    
+    ' B?y l?i: N?u tên sheet nh?p ? K2 không kh?p v?i b?t k? tab nào bên du?i
+    If wsData Is Nothing Then
+        MsgBox "Không tìm th?y Sheet d? li?u: [" & tenSheetData & "]." & vbCrLf & _
+               "Vui lòng ki?m tra l?i tên sheet ? ô K2 bên sheet SETUP!", vbCritical, "L?i Tên Sheet"
+        Exit Sub
+    End If
+    '======================================================================
 
     '--- Lay du lieu dau vao ---
     Dim maCanHo As String, ngayKy As Variant, tenTienDo As String
@@ -62,3 +81,4 @@ Public Sub TaoSoHopDong(ByVal activeRow As Long)
     
     wsData.Range(colSoHD & activeRow).Value = soHopDongHoanChinh
 End Sub
+
